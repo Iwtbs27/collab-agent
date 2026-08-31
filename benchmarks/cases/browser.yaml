@@ -1,0 +1,152 @@
+schema_version: 1
+
+cases:
+  - id: B01
+    upstream: webarena_verified
+    upstream_case_id: 260
+    split: development
+    difficulty: simple
+    environment: WebArena-Verified Shopping
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Open the Video Game category page to browse products
+
+  - id: B02
+    upstream: webarena_verified
+    upstream_case_id: 516
+    split: confirmation
+    difficulty: simple
+    environment: WebArena-Verified Shopping
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Add the product on the current page to my wishlist
+
+  - id: B03
+    upstream: webarena_verified
+    upstream_case_id: 298
+    split: development
+    difficulty: medium
+    environment: WebArena-Verified Shopping
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Open the order details page for the most recent completed order
+
+  - id: B04
+    upstream: webarena_verified
+    upstream_case_id: 389
+    split: development
+    difficulty: medium
+    environment: WebArena-Verified GitLab
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Post "Thanks, working on reviews" for the merge request related to octovisuals page in primer/design project
+
+  - id: B05
+    upstream: webarena_verified
+    upstream_case_id: 415
+    split: development
+    difficulty: hard
+    environment: WebArena-Verified GitLab
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Reply on the merge request assigned to me for verification functions: if the last comment is from the author, reply "Thank you"; otherwise tag the author (e.g., @user) as a reminder.
+
+  - id: B06
+    upstream: webarena_verified
+    upstream_case_id: 769
+    split: development
+    difficulty: hard
+    environment: WebArena-Verified Shopping Admin
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      We've received 378 brown Aero daily fitness tee in every size, please update the inventory
+
+  - id: B07
+    upstream: real
+    upstream_case_id: v2.gomail-16
+    split: development
+    difficulty: medium
+    environment: REAL GoMail
+    official_evaluator: eval_gomail_16.py
+    task: >-
+      GoMail: Create a label called Support Emails since there are an influx of those emails coming in
+
+  - id: B08
+    upstream: real
+    upstream_case_id: v2.gocalendar-13
+    split: confirmation
+    difficulty: medium
+    environment: REAL GoCalendar
+    official_evaluator: eval_gocalendar_13.py
+    task: >-
+      I have math camp July 21st to 27th all day. Create a reminder and the camp is in Sunnyvale btw.
+
+  - id: B09
+    upstream: real
+    upstream_case_id: v2.omnizon-24
+    split: development
+    difficulty: medium
+    environment: REAL Omnizon
+    official_evaluator: eval_omnizon_24.py
+    task: >-
+      Show me the different gaming controllers (PS5) and then order me 2 of them.
+
+  - id: B10
+    upstream: real
+    upstream_case_id: v2.udriver-9
+    split: development
+    difficulty: medium
+    environment: REAL Udriver
+    official_evaluator: eval_udriver_9.py
+    task: >-
+      I want to book a a UdriverXL ride from 1 Hotel San Francisco to 1030 Post Street Apartments picking me up now using cash.
+
+  - id: B11
+    upstream: visualwebarena
+    upstream_case_id: 32
+    split: confirmation
+    difficulty: medium
+    environment: VisualWebArena Classifieds
+    official_evaluator: HTMLContentExactEvaluator
+    task: >-
+      Find this exact bike that's listed for $300-500 and post a comment offering $10 less than their asking price.
+
+  - id: B12
+    upstream: visualwebarena
+    upstream_case_id: 59
+    split: development
+    difficulty: medium
+    environment: VisualWebArena Classifieds
+    official_evaluator: URLExactEvaluator
+    task: >-
+      Find the cheapest video game item with the animal from the image on its display.
+
+  - id: B13
+    upstream: visualwebarena
+    upstream_case_id: 110
+    split: confirmation
+    difficulty: hard
+    environment: VisualWebArena Shopping
+    official_evaluator: HTMLContentExactEvaluator
+    task: >-
+      Add this exact product to my shopping cart. I think it is in the "Smartwatch Accessories" category.
+
+  - id: B14
+    upstream: webchorearena
+    upstream_case_id: 10064
+    split: development
+    difficulty: hard
+    environment: WebChoreArena Shopping Admin
+    official_evaluator: StringEvaluator
+    task: >-
+      For each zip code that belongs to New York, calculate the total completed purchase amount (in monetary terms) by the people living in the zip code. Which zip has the highest purchase amount and how high is it? Final answer should be in the following format: '${zip}: ${purchase_amount}'. Round the purchase amount to the nearest integer just before answering each question. Amounts should be without '$',formatted with a comma as a thousands separator (e.g., 12,345).
+
+  - id: B15
+    upstream: webchorearena
+    upstream_case_id: 30174
+    split: confirmation
+    difficulty: hard
+    environment: WebChoreArena Reddit
+    official_evaluator: URLEvaluator + HTMLContentEvaluator
+    task: >-
+      Find the titles of the most upvoted, the 50th most upvoted, and the 100th most upvoted submissions in the "headphones" forum, and post them in the forum with the second highest number of submissions after "headphones" (i.e., the one ranked just below "headphones" in submission count). When posting, use the following format: {title of the most upvoted submission}, {title of the 50th most upvoted submission}, {title of the 100th most upvoted submission}.

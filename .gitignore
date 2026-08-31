@@ -1,0 +1,21 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Private project material and runtime output
+Reference/
+docs/
+tasks/
+AGENTS.md
+
+# Python and tool caches
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+.deepeval/
+
+# Local environments
+.venv/
+venv/

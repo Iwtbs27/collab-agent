@@ -1,0 +1,78 @@
+schema_version: 1
+
+cases:
+  - id: X01
+    upstream: windowsworld
+    upstream_case_id: win_hr__l2_004
+    split: development
+    difficulty: medium
+    environment: windows_vm
+    official_evaluator: windowsworld
+    adapted_evaluator: onboarding_checklist_final_state
+    task: >-
+      https://gist.github.com/josephgoksu/db7b758212764568e3e4ff096cf3f39d
+      is a sample employee onboarding checklist in Markdown format, copy its
+      content, create a new Word document named 'Onboarding_Checklist.docx',
+      paste and format the content, then save it to the desktop.
+
+  - id: X02
+    upstream: windowsworld
+    upstream_case_id: win_dat_l3_007
+    split: confirmation
+    difficulty: hard
+    environment: windows_vm
+    official_evaluator: windowsworld
+    adapted_evaluator: error_analysis_report_final_state
+    task: >-
+      Use File Explorer to locate all .log files in the Downloads folder,
+      count error occurrences using a PowerShell script in Windows Terminal,
+      export the counts to a CSV, open it in Excel to create a bar chart, then
+      embed the chart into a new Word document titled
+      'Error_Analysis_Report.docx' and save it to the desktop.
+
+  - id: X03
+    upstream: windowsworld
+    upstream_case_id: win_sof_l2_007
+    split: development
+    difficulty: medium
+    environment: windows_vm
+    official_evaluator: windowsworld
+    adapted_evaluator: backup_notification_final_state
+    task: >-
+      Use PowerShell to create a directory called 'project_backup' on the
+      desktop, then open File Explorer to verify the folder was created, and
+      finally use Chrome to send an email notification to
+      bench_serve1@2925.com confirming the backup directory creation.
+
+  - id: X04
+    upstream: the_agent_company
+    upstream_case_id: sde-report-unit-test-coverage-to-plane
+    split: development
+    difficulty: hard
+    environment: docker_compose
+    official_evaluator: the_agent_company
+    task: |-
+      1. Clone http://the-agent-company.com:8929/root/openhands project to /workspace
+      2. Run and check the unit test coverage of openhands directory
+      3. Create an issue on http://the-agent-company.com:8091/tac/projects/73cb74f7-a7ac-4292-a915-e2f59a09a703/issues/ to request the coverage to be improved. The issue title should follow the format "Openhands unit test coverage xx.xx%, needs to be improved", where the coverage value should be displayed with 2 decimal places.
+
+  - id: X05
+    upstream: the_agent_company
+    upstream_case_id: pm-present-gitlab-info-as-ppt
+    split: confirmation
+    difficulty: hard
+    environment: docker_compose
+    official_evaluator: the_agent_company
+    adapted_evaluator: engineering_progress_presentation_requirements
+    task: >-
+      Our CTO, Sarah Johnson, want to know more on the engineering progress
+      we've been made throughtout the past few months, so she requested a
+      presentation introducing all gitlab repositories we have now. You can
+      access this at http://the-agent-company.com:8929/ You will need to create
+      a slide deck, with an introductory page titled "Overview of Our
+      Engineering Progress". Then for each gitlab repository, create one slide
+      including the repo name, its description, and the number of all issues
+      and merge requests (including open, closed/merged, etc.) Save the
+      presentation to '/workspace/Engineering_Progress.pptx'. Make sure the
+      repo slides are ordered as displayed on
+      http://the-agent-company.com:8929/

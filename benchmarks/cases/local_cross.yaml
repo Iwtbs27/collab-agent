@@ -1,0 +1,292 @@
+schema_version: 1
+track: local
+domain: cross
+
+cases:
+  - id: LX01
+    upstream: osworld
+    upstream_case_id: e2392362-125e-4f76-a2ee-524b183a3412
+    difficulty: medium
+    split: confirmation
+    environment: Windows host / Chrome, PowerShell, and VS Code
+    applications:
+      - Chrome
+      - Windows PowerShell
+      - VS Code
+    fixture_root: fixtures/local-cross/LX01
+    run_root: runs/local-cross/LX01
+    target_path: academicpages.github.io
+    execution_scope: cross_application
+    score_scope: omniact_adapted
+    environment_scope: host_local_unisolated
+    launches:
+      - command: C:\Program Files\Google\Chrome\Application\chrome.exe
+        args:
+          - --user-data-dir={run}\.chrome-profile
+          - https://academicpages.github.io/
+        track: true
+      - command: E:\Microsoft VS Code\Code.exe
+        args:
+          - --new-window
+          - --user-data-dir={run}\.vscode-profile
+          - --extensions-dir={run}\.vscode-extensions
+          - '{run}\academicpages.github.io'
+        track: true
+    official_evaluator: check_json(is_yaml=true, name/author.name/author.email rules)
+    adapted_evaluator: yaml_records
+    task: >-
+      I recently started using the famous personal academic homepage template from
+      academicpages.github.io to build my own personal homepage, and I have cloned
+      it to my local Documents\Code\Website folder. According to an online tutorial,
+      I can configure my name and contact information in the _config.yaml file.
+      However, I am not familiar with the YAML file format. Please help me find the
+      sections related to the name and contact information in this file and change
+      them to "Test Account" and "Test@gmail.com".
+    local_task: >-
+      In the isolated run directory, use the checked-out AcademicPages project and
+      update academicpages.github.io\_config.yml to the three requested values.
+    fixture: >-
+      A shallow checkout of the public AcademicPages repository supplies the actual
+      project input. No OSWorld file-cache artifact or browser-profile state is used.
+    verification:
+      kind: yaml_records
+      output: academicpages.github.io/_config.yml
+      rules:
+        - path: name
+          equals: Test Account
+        - path: author.name
+          equals: Test Account
+        - path: author.email
+          equals: Test@gmail.com
+    reset: >-
+      Replace runs\local-cross\LX01 by copying fixtures\local-cross\LX01, then
+      launch Chrome and VS Code with per-run profiles and workspace paths.
+    adapted_boundary: >-
+      The public source project replaces the unavailable OSWorld archive. The exact
+      official YAML rules are retained; only the VM Documents path is mapped to the
+      isolated run directory.
+    requirements:
+      paths:
+        - fixtures/local-cross/LX01/academicpages.github.io/_config.yml
+      commands:
+        - C:\Program Files\Google\Chrome\Application\chrome.exe
+        - E:\Microsoft VS Code\bin\code.cmd
+      urls:
+        - https://academicpages.github.io/
+
+  - id: LX02
+    upstream: osworld
+    upstream_case_id: 510f64c8-9bcc-4be1-8d30-638705850618
+    difficulty: easy
+    split: development
+    environment: Windows host / PowerShell and VS Code
+    applications:
+      - Windows PowerShell
+      - VS Code
+    fixture_root: fixtures/local-cross/LX02
+    run_root: runs/local-cross/LX02
+    target_path: project
+    execution_scope: cross_application
+    score_scope: omniact_adapted
+    environment_scope: host_local_unisolated
+    launches: []
+    official_evaluator: check_include_exclude(code in terminal history) + compare_config(OpenProject=project)
+    adapted_evaluator: terminal_command_and_workspace
+    task: >-
+      Could you start VS Code in folder ~/Desktop/project from the terminal?
+    local_task: >-
+      The dedicated PowerShell session already starts in the declared operation
+      target path, which is the isolated project directory. Run `code .` there;
+      do not change to the execution record directory.
+    fixture: >-
+      A fixed local checkout of the pinned OSWorld source supplies a real project
+      tree. The unavailable evaluator extension and its file-cache inputs are not
+      copied into the local track.
+    verification:
+      kind: terminal_command_and_workspace
+      workspace: project
+      terminal_transcript: terminal-transcript.txt
+      command: code .
+      vscode_profile: .vscode-profile
+    reset: >-
+      Replace runs\local-cross\LX02 by copying fixtures\local-cross\LX02. The
+      copied project has no terminal transcript or VS Code launch evidence.
+    adapted_boundary: >-
+      Retain the terminal-to-VS-Code workspace end state. The original VM evaluator
+      extension is replaced by a deterministic transcript plus workspace-name rule.
+    requirements:
+      paths:
+        - fixtures/local-cross/LX02/project/README.md
+      commands:
+        - C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        - E:\Microsoft VS Code\bin\code.cmd
+      urls: []
+
+  - id: LX03
+    upstream: osworld
+    upstream_case_id: 2b9493d7-49b8-493a-a71b-56cd1f4d6908
+    difficulty: easy
+    split: development
+    environment: Windows host / PowerShell and LibreOffice Writer
+    applications:
+      - Windows PowerShell
+      - LibreOffice Writer
+    fixture_root: fixtures/local-cross/LX03
+    run_root: runs/local-cross/LX03
+    target_path: .
+    execution_scope: cross_application
+    score_scope: omniact_adapted
+    environment_scope: host_local_unisolated
+    launches: []
+    official_evaluator: check_include_exclude(no LibreOffice running; killed from terminal)
+    adapted_evaluator: process_and_transcript
+    task: >-
+      Hey, my LibreOffice Writer seems to have frozen and I can't get it to close
+      normally. Can you help me force quit the application from the command line?
+      I'm on Ubuntu and I don't want to restart my computer or lose any other work
+      I have open.
+    local_task: >-
+      With the dedicated Writer instance launched for this isolated run, use
+      PowerShell to force quit that instance without restarting Windows.
+    fixture: >-
+      The pinned OSWorld README is a real local Writer input. The original cached
+      document did not affect the official terminal and process success rule.
+    verification:
+      kind: process_and_transcript
+      process_metadata: case-writer-process.json
+      terminal_transcript: terminal-transcript.txt
+      required_terminal_evidence: Stop-Process
+      process_rule: every PID recorded for this case has exited
+    reset: >-
+      Replace runs\local-cross\LX03 by copying fixtures\local-cross\LX03, clear
+      the per-run transcript, launch one dedicated Writer process for the case, and
+      write its actual PID plus child-process PIDs to case-writer-process.json.
+    adapted_boundary: >-
+      Preserve the official terminal-evidence and no-Writer-process conditions;
+      restrict the Windows process check to the case-owned Writer instance so it
+      never targets a user's existing LibreOffice session.
+    requirements:
+      paths:
+        - fixtures/local-cross/LX03/Writer_Recovery_Input.md
+      commands:
+        - C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        - C:\Program Files\LibreOffice\program\soffice.exe
+      urls: []
+
+  - id: LX04
+    upstream: osworld
+    upstream_case_id: 26660ad1-6ebb-4f59-8cba-a8432dfe8d38
+    difficulty: medium
+    split: confirmation
+    environment: Windows host / Chrome and isolated file workspace
+    applications:
+      - Chrome
+      - File Explorer
+    fixture_root: fixtures/local-cross/LX04
+    run_root: runs/local-cross/LX04
+    target_path: .
+    execution_scope: cross_application
+    score_scope: omniact_adapted
+    environment_scope: host_local_unisolated
+    launches:
+      - command: C:\Program Files\Google\Chrome\Application\chrome.exe
+        args:
+          - --user-data-dir={run}\.chrome-profile
+          - https://www.speedtest.net/
+        track: true
+    official_evaluator: compare_time_in_speedtest_results(time_diff_range=60 minutes)
+    adapted_evaluator: speedtest_export_time
+    task: >-
+      I want to test the quality of the network environment my laptop is currently
+      in. Please measure my network situation through speedtest.net, export the
+      measurement results, and save them to Documents\Test\Speed (if the dir does
+      not exist, create it).
+    local_task: >-
+      Run Speedtest in the isolated browser profile, export its CSV result, and
+      save it under Test\Speed in the isolated run directory.
+    fixture: >-
+      The official configuration has no user input file. The empty fixture
+      directory is therefore its real clean initial state, not a placeholder.
+    verification:
+      kind: speedtest_export_time
+      output_directory: Test/Speed
+      file_glob: Speedtest Results Export-*.csv
+      timestamp_row: 2
+      timestamp_column: 2
+      max_age_minutes: 60
+    reset: >-
+      Replace runs\local-cross\LX04 by copying the empty fixtures\local-cross\LX04
+      directory, then use a fresh Chrome profile rooted in that run directory.
+    adapted_boundary: >-
+      Retain the official CSV timestamp freshness rule and map the VM Documents
+      path to the isolated run directory. No expected speed measurement is created.
+    requirements:
+      paths: []
+      commands:
+        - C:\Program Files\Google\Chrome\Application\chrome.exe
+      urls:
+        - https://c.speedtest.net/speedtest-servers-static.php
+
+  - id: LX05
+    upstream: osworld
+    upstream_case_id: 2373b66a-092d-44cb-bfd7-82e86e7a3b4d
+    difficulty: medium
+    split: development
+    environment: Windows host / PowerShell and LibreOffice Calc
+    applications:
+      - Windows PowerShell
+      - LibreOffice Calc
+    fixture_root: fixtures/local-cross/LX05
+    run_root: runs/local-cross/LX05
+    target_path: .
+    execution_scope: cross_application
+    score_scope: omniact_adapted
+    environment_scope: host_local_unisolated
+    launches:
+      - command: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        args:
+          - -NoLogo
+          - -NoExit
+          - -Command
+          - Set-Location -LiteralPath '{run}'
+        cwd: '{run}'
+        new_console: true
+        track: true
+    official_evaluator: file_contains(CPU headers) + check_line_number(31)
+    adapted_evaluator: structured_text
+    task: >-
+      Monitor Ubuntu system resource usage using the sar command from sysstat
+      toolkit. Collect CPU statistics every second for 30 seconds and save the
+      output to 'System_Resources_Report.txt' on Desktop.
+    local_task: >-
+      Use PowerShell Get-Counter to collect equivalent CPU statistics every second
+      for 30 samples and save a 31-line System_Resources_Report.txt in the isolated
+      run directory; open the finished report in Calc.
+    fixture: >-
+      The official configuration has no user input file. The empty fixture
+      directory is therefore its real clean initial state, not a placeholder.
+    verification:
+      kind: structured_text
+      output: System_Resources_Report.txt
+      required_text:
+        - CPU
+        - '%user'
+        - '%nice'
+        - '%system'
+        - '%iowait'
+        - '%steal'
+        - '%idle'
+      timestamp_line_count: 31
+    reset: >-
+      Replace runs\local-cross\LX05 by copying the empty fixtures\local-cross\LX05
+      directory. The copied run contains no system resource report.
+    adapted_boundary: >-
+      Keep the official field and line-count rules. Windows lacks sar, so
+      Get-Counter replaces collection only; the report remains a deterministic
+      31-line artifact in the isolated run directory.
+    requirements:
+      paths: []
+      commands:
+        - C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        - C:\Program Files\LibreOffice\program\soffice.exe
+      urls: []

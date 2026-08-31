@@ -1,0 +1,164 @@
+schema_version: 1
+
+cases:
+  - id: D01
+    upstream: windows_agent_arena
+    upstream_case_id: 02F10F89-7171-4D37-8550-A00BA8930CDF-WOS
+    split: development
+    difficulty: simple
+    environment: WindowsAgentArena Windows 11 / Windows Clock
+    official_evaluator: "exact_match(check_if_timer_started: 3:00:00)"
+    task: >-
+      Start a 3 hour timer using the clock app.
+
+  - id: D02
+    upstream: windows_agent_arena
+    upstream_case_id: 366de66e-cbae-4d72-b042-26390db2b145-WOS
+    split: confirmation
+    difficulty: simple
+    environment: WindowsAgentArena Windows 11 / Notepad
+    official_evaluator: exact_match(file exists) and compare_text_file
+    task: >-
+      Please open Notepad, create a new file named "draft.txt", type "This is a draft.", and save it to the Documents folder.
+
+  - id: D03
+    upstream: windows_agent_arena
+    upstream_case_id: e27984c7-968c-48d7-b2c3-6e45cdcc5249-WOS
+    split: development
+    difficulty: medium
+    environment: WindowsAgentArena Windows 11 / File Explorer
+    official_evaluator: exact_match(is_file_hidden)
+    task: >-
+      Set the file "secret.txt" in the Documents folder as hidden.
+
+  - id: D04
+    upstream: windows_agent_arena
+    upstream_case_id: e8f68f22-1f6a-4cba-a97a-ac611bb4c67b-wos
+    split: development
+    difficulty: medium
+    environment: WindowsAgentArena Windows 11 / Windows Settings
+    official_evaluator: exact_match(storage_sense_run_frequency=7)
+    task: >-
+      Enable the "Storage Sense" feature and configure it to run every week.
+
+  - id: D05
+    upstream: windows_agent_arena
+    upstream_case_id: 44dbac63-32bf-4cd2-81b4-ad6803ec812d-WOS
+    split: development
+    difficulty: medium
+    environment: WindowsAgentArena Windows 11 / Microsoft Paint
+    official_evaluator: exact_match(image_dimension_matches_input=800x600)
+    task: >-
+      Change the canvas size to 800x600 pixels.
+
+  - id: D06
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    upstream_case_id: 0e763496-b6bb-4508-a427-fad0b6c3e195-WOS
+    source_case_id: 0e763496-b6bb-4508-a427-fad0b6c3e195
+    split: confirmation
+    difficulty: medium
+    environment: WindowsAgentArena Windows 11 / LibreOffice Writer
+    official_evaluator: compare_font_names
+    task: >-
+      Change the font to "Times New Roman" throughout the text.
+
+  - id: D07
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    upstream_case_id: 4bcb1253-a636-4df4-8cb0-a35c04dfef31-WOS
+    source_case_id: 4bcb1253-a636-4df4-8cb0-a35c04dfef31
+    split: development
+    difficulty: medium
+    environment: WindowsAgentArena Windows 11 / LibreOffice Writer and PDF
+    official_evaluator: compare_pdfs(score=1.0)
+    task: >-
+      Export the current document into PDF, keep the file name
+
+  - id: D08
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    upstream_case_id: 930fdb3b-11a8-46fe-9bac-577332e2640e-WOS
+    source_case_id: 930fdb3b-11a8-46fe-9bac-577332e2640e
+    split: development
+    difficulty: medium
+    environment: WindowsAgentArena Windows 11 / VS Code
+    official_evaluator: check_json_keybindings
+    task: >-
+      Please help me create a shortcut "ctrl+j" to move cursor focus from terminal to editor in VS Code.
+
+  - id: D09
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    upstream_case_id: 8ba5ae7a-5ae5-4eab-9fcc-5dd4fe3abf89-WOS
+    source_case_id: 8ba5ae7a-5ae5-4eab-9fcc-5dd4fe3abf89
+    split: confirmation
+    difficulty: medium
+    environment: WindowsAgentArena Windows 11 / VLC
+    official_evaluator: is_vlc_recordings_folder
+    task: >-
+      Help me modify the folder used to store my recordings to Desktop
+
+  - id: D10
+    upstream: windows_agent_arena
+    upstream_case_id: 016c9a9d-f2b9-4428-8fdb-f74f4439ece6-WOS
+    split: development
+    difficulty: hard
+    environment: WindowsAgentArena Windows 11 / File Explorer and Notepad
+    official_evaluator: exact_match(all_png_file_names)
+    task: >-
+      Search for all files with the extension .png in the Pictures folder and list their full names in png_files.txt in the same folder.
+
+  - id: D11
+    upstream: windows_agent_arena
+    upstream_case_id: b0c9dac6-52ba-4937-aabb-b0abdc2a8138-WOS
+    split: development
+    difficulty: hard
+    environment: WindowsAgentArena Windows 11 / File Explorer and 7-Zip
+    official_evaluator: exact_match(zipped_folder_in_desktop)
+    task: >-
+      Compress the 'OldProjects'folder in the user's 'Desktop' into a password-protected zip file with the password as '12345' using 7-zip. Save it as 'OldProjects.7z'
+
+  - id: D12
+    upstream: windows_agent_arena
+    upstream_case_id: 46adf721-2949-4426-b069-010b7c128d8f-wos
+    split: confirmation
+    difficulty: hard
+    environment: WindowsAgentArena Windows 11 / Windows Settings
+    official_evaluator: exact_match(night_light_state)
+    task: >-
+      Enable the "Night light" feature and set it to turn on at 7:00 PM and off at 7:00 AM.
+
+  - id: D13
+    upstream: windows_agent_arena
+    upstream_case_id: 28b91a24-5d97-4c2a-891c-dccbd3820c62-WOS
+    split: development
+    difficulty: hard
+    environment: WindowsAgentArena Windows 11 / Windows Calculator and Notepad
+    official_evaluator: exact_match(is_file_saved_desktop)
+    task: >-
+      Calculate how many years, months, weeks and days are between 10/08/1980 (MM/DD/YYYY) and 8/2/2024 using the calculator app, and save the result in a file called 'Differences.txt' on the Desktop (e.g. X years, Y months, Z weeks, W days)
+
+  - id: D14
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    upstream_case_id: b21acd93-60fd-4127-8a43-2f5178f4a830-WOS
+    source_case_id: b21acd93-60fd-4127-8a43-2f5178f4a830
+    split: development
+    difficulty: hard
+    environment: WindowsAgentArena Windows 11 / LibreOffice Writer
+    official_evaluator: compare_line_spacing
+    task: >-
+      I have been practicing professional writing lately. Now I am writing essay which requires one paragraph each for introduction, body and conclusion with single-space for introduction, double-space for body then one-and-a-half-space for conclusion. The font size of this essay is 12. Could you help me on this?
+
+  - id: D15
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    upstream_case_id: 30e3e107-1cfb-46ee-a755-2cd080d7ba6a-WOS
+    source_case_id: 30e3e107-1cfb-46ee-a755-2cd080d7ba6a
+    split: confirmation
+    difficulty: hard
+    environment: WindowsAgentArena Windows 11 / LibreOffice Calc
+    official_evaluator: compare_table(WAA pivot_table and check_cell rules)
+    task: >-
+      Please create a new sheet. Keep its sheet name as "Sheet2". Merge cells A1:C1 in the new sheet and write "Demographic Profile" with blue (#0000ff) fill and bold white text. Then I want to create three pivot tables to show the percentage of Sex, Civil Status, and Highest Educational Attainment. They should be stacked one by one in Sheet2, each separated with a blank line.

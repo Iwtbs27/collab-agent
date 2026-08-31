@@ -1,0 +1,323 @@
+schema_version: 1
+track: local
+domain: browser
+site: shopping
+
+cases:
+  - id: LB01
+    upstream: webarena_verified
+    upstream_case_id: 22
+    difficulty: non-hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/fujifilm-finepix-z200fd-10mp-digital-camera-with-5x-optical-dual-image-stabilized-zoom-black.html
+    official_evaluator: AgentResponseEvaluator
+    task: >-
+      Get name(s) of reviewer(s) who mention under water photo for the product on the current page
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB02
+    upstream: webarena_verified
+    upstream_case_id: 47
+    difficulty: non-hard
+    split: confirmation
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator
+    task: >-
+      Today is June 12, 2023. Get how many complete orders I have over the past months, and the total amount of money I spent (including shipping and handling fees). Return an object with keys "order_count" (as integer) and "amount" (as number, e.g., 10.99) only, without any additional details.
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB03
+    upstream: webarena_verified
+    upstream_case_id: 118
+    difficulty: non-hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      I have a jaw bruxism problem, go to the product page for something that could alleviate the problem.
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB04
+    upstream: webarena_verified
+    upstream_case_id: 260
+    difficulty: non-hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Open the Video Game category page to browse products
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB05
+    upstream: webarena_verified
+    upstream_case_id: 298
+    difficulty: non-hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Open the order details page for the most recent completed order
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB06
+    upstream: webarena_verified
+    upstream_case_id: 433
+    difficulty: non-hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/tazrigo-5pcs-white-dental-resin-brush-pens-dental-shaping-silicone-tooth-tool.html
+      - http://localhost:7770/stylus-pens-for-touch-screens-2-pcs-universal-stylus-2-in-1-2022-updated-touch-screen-pens-for-all-touch-screens-cell-phones-tablets-laptops-with-6-replacement-tips-4-discstips-2-fiber-tips.html
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Add the product with the lowest per unit price from my open tabs to the shopping cart
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB07
+    upstream: webarena_verified
+    upstream_case_id: 516
+    difficulty: non-hard
+    split: confirmation
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/elmwood-inn-fine-teas-orange-vanilla-caffeine-free-fruit-infusion-16-ounce-pouch.html
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Add the product on the current page to my wishlist
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB08
+    upstream: webarena_verified
+    upstream_case_id: 50
+    difficulty: hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator
+    task: >-
+      Today is June 12, 2023. Get how many complete orders I have over the past year, and the total amount of money I spent (including shipping and handling fees). Return an object with keys "order_count" (as integer) and "amount" (as number, e.g., 10.99) only, without any additional details.
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB09
+    upstream: webarena_verified
+    upstream_case_id: 96
+    difficulty: hard
+    split: confirmation
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator
+    task: >-
+      Get the status of my latest order and when will it arrive. Return a list of objects with keys "status" and "arrival_date" (YYYY-MM-DD format or null if not available), without any additional details.
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB10
+    upstream: webarena_verified
+    upstream_case_id: 124
+    difficulty: hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator
+    task: >-
+      What is the price range of wireless earphone in the One Stop Market?. Return an object with keys "min" and "max" (as numbers, e.g., 10.99) only, without any additional details.
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB11
+    upstream: webarena_verified
+    upstream_case_id: 240
+    difficulty: hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      I am doing a market survey for one stop market, go to the product page for the most expensive men's Uniforms, Work & Safety
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB12
+    upstream: webarena_verified
+    upstream_case_id: 269
+    difficulty: hard
+    split: confirmation
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Open the "women shoes" category page filtered to under $25
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB13
+    upstream: webarena_verified
+    upstream_case_id: 431
+    difficulty: hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/tall-pink-taper-candles-4-piece-orange-colored-tapered-candles-gradient-candles-10-6-inches-tall-tie-dye-candle-set-large-dripless-long-burning-candlesticks-two-color-taper-candles-candlesticks.html
+      - http://localhost:7770/spaas-white-taper-candles-4-pack-10-inch-tall-candles-scent-free-premium-wax-candle-sticks-8-hour-long-burning-white-candlesticks-for-home-decoration-wedding-holiday-and-parties.html
+      - http://localhost:7770/white-starfish-wall-candle-sconces-set-of-2-beach-decor-ocean-themed-wall-mount-candleholders-nautical-style-beach-bathroom-decor-coastal-farmhouse-seashell-candle-holders.html
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Add the product with the lowest per unit price from my open tabs to the shopping cart
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB14
+    upstream: webarena_verified
+    upstream_case_id: 507
+    difficulty: hard
+    split: development
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator + NetworkEventEvaluator + NetworkEventEvaluator + NetworkEventEvaluator
+    task: >-
+      Buy the highest rated product from the Ceiling light category within a budget above 1000. Discard any items in your cart if it is not empty.
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status
+
+  - id: LB15
+    upstream: webarena_verified
+    upstream_case_id: 795
+    difficulty: hard
+    split: confirmation
+    environment: WebArena-Verified Shopping
+    start_urls:
+      - http://localhost:7770/
+    official_evaluator: AgentResponseEvaluator + NetworkEventEvaluator
+    task: >-
+      Change the delivery address for my second most recent order to 6726 McPherson Blvd, Pittsburgh, PA.
+    reset: Call the official POST /init endpoint before each case.
+    reset_url: http://localhost:7771/init
+    requirements:
+      paths:
+        - upstreams/webarena-verified
+      commands: []
+      urls:
+        - http://localhost:7770/
+        - http://localhost:7771/status

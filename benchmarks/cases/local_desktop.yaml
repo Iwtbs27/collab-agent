@@ -1,0 +1,730 @@
+schema_version: 1
+track: local
+domain: desktop
+
+cases:
+  - id: LD01
+    upstream: windows_agent_arena
+    upstream_case_id: 366de66e-cbae-4d72-b042-26390db2b145-WOS
+    difficulty: simple
+    split: development
+    environment: Windows host / Notepad and isolated file workspace
+    applications:
+      - Notepad
+    official_evaluator: exact_match(vm_file_exists_in_vm_folder) + compare_text_file
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official compare_text_file metric after a
+      host-path collector. The full WindowsAgentArena DesktopEnv and VM getter
+      pipeline are not used on the local host.
+    task: >-
+      Please open Notepad, create a new file named "draft.txt", type "This is a
+      draft.", and save it to the Documents folder.
+    fixture: >-
+      A deterministic empty Documents workspace; the expected local result is
+      draft.txt with exactly "This is a draft." and no network input.
+    fixture_root: fixtures/local-desktop/LD01
+    run_root: runs/local-desktop/LD01
+    launches:
+      - command: notepad.exe
+        args: []
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD01/Documents as the opened
+      Documents folder for this case and do not use the real user Documents folder.
+    verification:
+      kind: text
+      output: Documents/draft.txt
+      expected: expected/draft.txt
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD01 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD01. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD01/expected/draft.txt
+      commands:
+        - notepad.exe
+      urls: []
+
+  - id: LD02
+    upstream: windows_agent_arena
+    upstream_case_id: b8ab0ae1-d2b4-4e6f-b609-df7d76b456d7-WOS
+    difficulty: simple
+    split: confirmation
+    environment: Windows host / File Explorer and isolated file workspace
+    applications:
+      - File Explorer
+    official_evaluator: compare_text_file
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official file-content comparison after host-path
+      collection; WindowsAgentArena VM file retrieval is replaced only for the
+      isolated case root.
+    task: >-
+      Copy the file "example.txt" from the Desktop to the Documents folder and
+      then rename it to "example_renamed.txt".
+    fixture: >-
+      A deterministic Desktop/example.txt fixture with fixed text. The expected
+      Documents/example_renamed.txt must preserve that text exactly.
+    fixture_root: fixtures/local-desktop/LD02
+    run_root: runs/local-desktop/LD02
+    launches:
+      - command: explorer.exe
+        args: ['/separate,{run}\Desktop']
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD02/Desktop and Documents as
+      this case's opened folders; do not use the real user Desktop or Documents.
+    verification:
+      kind: same_file
+      output: Documents/example_renamed.txt
+      expected: Desktop/example.txt
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD02 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD02. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD02/Desktop/example.txt
+      commands:
+        - explorer.exe
+      urls: []
+
+  - id: LD03
+    upstream: windows_agent_arena
+    upstream_case_id: 28b91a24-5d97-4c2a-891c-dccbd3820c62-WOS-2
+    difficulty: simple
+    split: development
+    environment: Windows host / Calculator, Notepad, and isolated file workspace
+    applications:
+      - Calculator
+      - Notepad
+    official_evaluator: exact_match(is_file_saved_desktop)
+    evaluator_reuse: >-
+      OmniAct-adapted: retain the official contains-text rule for "230 days", but
+      collect numdays.txt from the host case root instead of through the VM getter.
+    task: >-
+      Can you use the calculator app to find how many days are between Jan 3,
+      2024 and Aug 20 2024? Save the result in a file called 'numdays.txt' on the
+      Desktop (e.g. X days)
+    fixture: >-
+      A deterministic empty Desktop workspace; numdays.txt is accepted when its
+      content contains the official expected result, "230 days".
+    fixture_root: fixtures/local-desktop/LD03
+    run_root: runs/local-desktop/LD03
+    launches:
+      - command: calc.exe
+        args: []
+        track: true
+      - command: notepad.exe
+        args: []
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD03/Desktop as the opened
+      Desktop folder for this case and do not use the real user Desktop.
+    verification:
+      kind: text
+      output: Desktop/numdays.txt
+      contains: 230 days
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD03 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD03. Do not touch C: or real user
+      folders.
+    requirements:
+      paths: []
+      commands:
+        - calc.exe
+        - notepad.exe
+      urls: []
+
+  - id: LD04
+    upstream: windows_agent_arena
+    upstream_case_id: e27984c7-968c-48d7-b2c3-6e45cdcc5249-WOS
+    difficulty: medium
+    split: development
+    environment: Windows host / File Explorer and isolated file workspace
+    applications:
+      - File Explorer
+    official_evaluator: exact_match(is_file_hidden)
+    evaluator_reuse: >-
+      OmniAct-adapted: preserve the official hidden-attribute assertion while
+      reading the NTFS attribute from the host case root. The original VM getter
+      and full DesktopEnv pipeline remain VM-only.
+    task: >-
+      Set the file "secret.txt" in the Documents folder as hidden.
+    fixture: >-
+      A deterministic, visible Documents/secret.txt fixture with fixed content;
+      completion requires its NTFS Hidden attribute to be set.
+    fixture_root: fixtures/local-desktop/LD04
+    run_root: runs/local-desktop/LD04
+    launches:
+      - command: explorer.exe
+        args: ['/separate,{run}\Documents']
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD04/Documents as the opened
+      Documents folder for this case and do not use the real user Documents folder.
+    verification:
+      kind: hidden
+      output: Documents/secret.txt
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD04 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD04. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD04/Documents/secret.txt
+      commands:
+        - explorer.exe
+      urls: []
+
+  - id: LD05
+    upstream: windows_agent_arena
+    upstream_case_id: 0c9dda13-428c-492b-900b-f48562111f93-WOS
+    difficulty: medium
+    split: development
+    environment: Windows host / File Explorer and isolated file workspace
+    applications:
+      - File Explorer
+    official_evaluator: exact_match(is_all_docx_in_archive)
+    evaluator_reuse: >-
+      OmniAct-adapted: retain the official directory-state rule and evaluate the
+      isolated Documents directory on the host. The WindowsAgentArena VM getter
+      is not invoked.
+    task: >-
+      Create a new folder named "Archive" in the Documents folder and move all
+      .docx files into it.
+    fixture: >-
+      Documents contains two deterministic .docx files; only those files belong
+      in Archive.
+    fixture_root: fixtures/local-desktop/LD05
+    run_root: runs/local-desktop/LD05
+    launches:
+      - command: explorer.exe
+        args: ['/separate,{run}\Documents']
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD05/Documents as the opened
+      Documents folder for this case and do not use the real user Documents folder.
+    verification:
+      kind: all_files_moved
+      source: Documents
+      pattern: '*.docx'
+      destination: Documents/Archive
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD05 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD05. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD05/Documents/Doc01.docx
+        - fixtures/local-desktop/LD05/Documents/Doc02.docx
+      commands:
+        - explorer.exe
+      urls: []
+
+  - id: LD06
+    upstream: windows_agent_arena
+    upstream_case_id: a7d4b6c5-569b-452e-9e1d-ffdb3d431d15-WOS
+    difficulty: medium
+    split: development
+    environment: Windows host / Notepad and isolated file workspace
+    applications:
+      - Notepad
+    official_evaluator: compare_text_file
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official exact text-file comparison after host
+      collection. The expected count is stored in the deterministic local fixture;
+      the VM file collector is not used.
+    task: >-
+      Please open Notepad, load the file "largefile.txt" from the Documents
+      folder, and search for the word "example", count all instances. Store the
+      number of "example" counts (and nothing else) in a file named
+      "example_count.txt" under Documents folder
+    fixture: >-
+      A deterministic Documents/largefile.txt fixture with a fixed number of
+      occurrences and a matching one-line expected output fixture; no input is
+      downloaded at run time.
+    fixture_root: fixtures/local-desktop/LD06
+    run_root: runs/local-desktop/LD06
+    launches:
+      - command: notepad.exe
+        args: ['{run}\Documents\largefile.txt']
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD06/Documents as the opened
+      Documents folder for this case and do not use the real user Documents folder.
+    verification:
+      kind: text
+      output: Documents/example_count.txt
+      expected: expected/example_count_gold.txt
+    evaluation_postconfig:
+      - action: save
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD06 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD06. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD06/Documents/largefile.txt
+        - fixtures/local-desktop/LD06/expected/example_count_gold.txt
+      commands:
+        - notepad.exe
+      urls: []
+
+  - id: LD07
+    upstream: windows_agent_arena
+    upstream_case_id: 44dbac63-32bf-4cd2-81b4-ad6803ec812d-WOS
+    difficulty: medium
+    split: confirmation
+    environment: Windows host / Paint and isolated file workspace
+    applications:
+      - Paint
+    official_evaluator: exact_match(image_dimension_matches_input=800x600)
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official image-dimension check for
+      Downloads/CanvasSize.png after host-path collection. The original getter's
+      VM controller call and full DesktopEnv pipeline are not used.
+    task: >-
+      Change the canvas size to 800x600 pixels.
+    fixture: >-
+      A deterministic empty Paint workspace. The local post-task collector saves
+      the canvas as Downloads/CanvasSize.png and verifies an 800 by 600 PNG.
+    fixture_root: fixtures/local-desktop/LD07
+    run_root: runs/local-desktop/LD07
+    launches:
+      - command: mspaint.exe
+        args: []
+        track: true
+    local_task: >-
+      Use the isolated Paint workspace for OMNIACT_BENCH_HOME/runs/local-desktop/LD07;
+      save the resized canvas as Downloads/CanvasSize.png inside that case directory.
+    verification:
+      kind: image_size
+      output: Downloads/CanvasSize.png
+      width: 800
+      height: 600
+    evaluation_postconfig:
+      - action: save_as
+        path: runs/local-desktop/LD07/Downloads/CanvasSize.png
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD07 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD07. Do not touch C: or real user
+      folders.
+    requirements:
+      paths: []
+      commands:
+        - mspaint.exe
+      urls: []
+
+  - id: LD08
+    upstream: windows_agent_arena
+    upstream_case_id: 0ed39f63-6049-43d4-ba4d-5fa2fe04a951-WOS
+    difficulty: medium
+    split: development
+    environment: Windows host / Visual Studio Code and isolated file workspace
+    applications:
+      - Visual Studio Code
+    official_evaluator: compare_text_file
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official expected-text comparison after host-path
+      collection from the isolated Downloads directory; VM file retrieval is not
+      used.
+    task: >-
+      Please help me change all the places in this document that say "text" to
+      "test".
+    fixture: >-
+      A deterministic Downloads/vscode_replace_text.txt input and matching gold
+      text fixture containing the required replacements.
+    fixture_root: fixtures/local-desktop/LD08
+    run_root: runs/local-desktop/LD08
+    launches:
+      - command: E:\Microsoft VS Code\Code.exe
+        args:
+          - --new-window
+          - --user-data-dir={run}\.vscode-profile
+          - --extensions-dir={run}\.vscode-extensions
+          - '{run}\Downloads\vscode_replace_text.txt'
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD08/Downloads as the opened
+      Downloads folder for this case and do not use the real user Downloads folder.
+    verification:
+      kind: text
+      output: Downloads/vscode_replace_text.txt
+      expected: expected/vscode_replace_text_gold.txt
+    evaluation_postconfig:
+      - action: save
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD08 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD08. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD08/Downloads/vscode_replace_text.txt
+        - fixtures/local-desktop/LD08/expected/vscode_replace_text_gold.txt
+      commands:
+        - code
+      urls: []
+
+  - id: LD09
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    source_case_id: 0e763496-b6bb-4508-a427-fad0b6c3e195
+    upstream_case_id: 0e763496-b6bb-4508-a427-fad0b6c3e195-WOS
+    difficulty: medium
+    split: development
+    environment: Windows host / LibreOffice Writer and isolated file workspace
+    applications:
+      - LibreOffice Writer
+    official_evaluator: compare_font_names
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official font-name metric after collecting the
+      host file. The WindowsAgentArena VM file collector and full DesktopEnv
+      evaluator pipeline remain VM-only.
+    task: >-
+      Change the font to "Times New Roman" throughout the text.
+    fixture: >-
+      A deterministic Downloads/Dublin_Zoo_Intro.docx fixture; every non-empty
+      text run is evaluated against the Times New Roman target.
+    fixture_root: fixtures/local-desktop/LD09
+    run_root: runs/local-desktop/LD09
+    launches:
+      - command: C:\Program Files\LibreOffice\program\soffice.exe
+        args:
+          - -env:UserInstallation={run_uri}/.libreoffice-profile
+          - --writer
+          - '{run}\Downloads\Dublin_Zoo_Intro.docx'
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD09/Downloads as the opened
+      Downloads folder for this case and do not use the real user Downloads folder.
+    verification:
+      kind: docx_fonts
+      output: Downloads/Dublin_Zoo_Intro.docx
+      font: Times New Roman
+    evaluation_postconfig:
+      - action: save
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD09 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD09. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD09/Downloads/Dublin_Zoo_Intro.docx
+      commands:
+        - soffice
+      urls: []
+
+  - id: LD10
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    source_case_id: 01b269ae-2111-4a07-81fd-3fcd711993b0
+    upstream_case_id: 01b269ae-2111-4a07-81fd-3fcd711993b0-WOS
+    difficulty: medium
+    split: confirmation
+    environment: Windows host / LibreOffice Calc and isolated file workspace
+    applications:
+      - LibreOffice Calc
+    official_evaluator: compare_table(sheet_data, sheet_idx0=0, sheet_idx1=EI0)
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official compare_table rules and deterministic
+      gold workbook after collecting the host output file. VM retrieval and the
+      complete WindowsAgentArena evaluator pipeline remain VM-only.
+    task: >-
+      Fill all the blank cells with the value in the cell above it
+    fixture: >-
+      A deterministic Downloads/Student_Level_Fill_Blank.xlsx input and matching
+      gold workbook for the official sheet-data range; no download occurs at run
+      time.
+    fixture_root: fixtures/local-desktop/LD10
+    run_root: runs/local-desktop/LD10
+    launches:
+      - command: C:\Program Files\LibreOffice\program\soffice.exe
+        args:
+          - -env:UserInstallation={run_uri}/.libreoffice-profile
+          - --calc
+          - '{run}\Downloads\Student_Level_Fill_Blank.xlsx'
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD10/Downloads as the opened
+      Downloads folder for this case and do not use the real user Downloads folder.
+    verification:
+      kind: workbook_values
+      output: Downloads/Student_Level_Fill_Blank.xlsx
+      expected: expected/Student_Level_Fill_Blank_gold.xlsx
+      rules:
+        - type: sheet_data
+          sheet_idx0: 0
+          sheet_idx1: EI0
+    evaluation_postconfig:
+      - action: save
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD10 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD10. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD10/Downloads/Student_Level_Fill_Blank.xlsx
+        - fixtures/local-desktop/LD10/expected/Student_Level_Fill_Blank_gold.xlsx
+      commands:
+        - soffice
+      urls: []
+
+  - id: LD11
+    upstream: windows_agent_arena
+    upstream_case_id: 016c9a9d-f2b9-4428-8fdb-f74f4439ece6-WOS
+    difficulty: hard
+    split: development
+    environment: Windows host / File Explorer, Notepad, and isolated file workspace
+    applications:
+      - File Explorer
+      - Notepad
+    official_evaluator: exact_match(all_png_file_names)
+    evaluator_reuse: >-
+      OmniAct-adapted: preserve the official set comparison between png_files.txt
+      and the top-level PNG names in Pictures. Directory enumeration and file
+      collection run against the host case root, not a VM controller.
+    task: >-
+      Search for all files with the extension .png in the Pictures folder and list
+      their full names in png_files.txt in the same folder.
+    fixture: >-
+      A deterministic Pictures fixture with fixed top-level PNG names. The
+      evaluator compares the output list with the PNG files present at the end
+      of the run.
+    fixture_root: fixtures/local-desktop/LD11
+    run_root: runs/local-desktop/LD11
+    launches:
+      - command: explorer.exe
+        args: ['/separate,{run}\Pictures']
+        track: true
+      - command: notepad.exe
+        args: []
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD11/Pictures as the opened
+      Pictures folder for this case and do not use the real user Pictures folder.
+    verification:
+      kind: png_names
+      output: Pictures/png_files.txt
+      directory: Pictures
+      pattern: '*.png'
+      expected_members:
+        - cs-black-000.png
+        - cs-gray-7f7f7f.png
+        - cs-white-fff.png
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD11 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD11. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD11/Pictures/cs-black-000.png
+        - fixtures/local-desktop/LD11/Pictures/cs-gray-7f7f7f.png
+        - fixtures/local-desktop/LD11/Pictures/cs-white-fff.png
+      commands:
+        - explorer.exe
+        - notepad.exe
+      urls: []
+
+  - id: LD12
+    upstream: windows_agent_arena
+    upstream_case_id: b0c9dac6-52ba-4937-aabb-b0abdc2a8138-WOS
+    difficulty: hard
+    split: development
+    environment: Windows host / File Explorer, 7-Zip, and isolated file workspace
+    applications:
+      - File Explorer
+      - 7-Zip
+    official_evaluator: exact_match(zipped_folder_in_desktop)
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official archive-member and password validation
+      logic after reading Desktop/OldProjects.7z from the host case root. The
+      original VM controller file read and complete DesktopEnv pipeline are not
+      used.
+    task: >-
+      Compress the 'OldProjects'folder in the user's 'Desktop' into a
+      password-protected zip file with the password as '12345' using 7-zip. Save
+      it as 'OldProjects.7z'
+    fixture: >-
+      A deterministic Desktop/OldProjects/example.txt fixture; the expected
+      output is an OldProjects.7z archive protected with password 12345 and
+      containing the seeded project member.
+    fixture_root: fixtures/local-desktop/LD12
+    run_root: runs/local-desktop/LD12
+    launches:
+      - command: explorer.exe
+        args: ['/separate,{run}\Desktop']
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD12/Desktop as the opened
+      Desktop folder for this case and do not use the real user Desktop.
+    verification:
+      kind: seven_zip
+      output: Desktop/OldProjects.7z
+      password: '12345'
+      expected_members:
+        - OldProjects/example.txt
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD12 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD12. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD12/Desktop/OldProjects/example.txt
+      commands:
+        - explorer.exe
+        - 7z
+      urls: []
+
+  - id: LD13
+    upstream: windows_agent_arena
+    upstream_case_id: ec71221e-ac43-46f9-89b8-ee7d80f7e1c5-WOS
+    difficulty: hard
+    split: confirmation
+    environment: Windows host / Visual Studio Code and isolated file workspace
+    applications:
+      - Visual Studio Code
+    official_evaluator: compare_text_file
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official exact text-file metric after collecting
+      the host file from the isolated Downloads directory; the VM collector is
+      not used.
+    task: >-
+      Please help me increase the indent of line 2 to line 10 by one tab.
+    fixture: >-
+      A deterministic Downloads/test.py fixture and gold text fixture in which
+      only lines 2 through 10 gain one tab of indentation.
+    fixture_root: fixtures/local-desktop/LD13
+    run_root: runs/local-desktop/LD13
+    launches:
+      - command: E:\Microsoft VS Code\Code.exe
+        args:
+          - --new-window
+          - --user-data-dir={run}\.vscode-profile
+          - --extensions-dir={run}\.vscode-extensions
+          - '{run}\Downloads\test.py'
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD13/Downloads as the opened
+      Downloads folder for this case and do not use the real user Downloads folder.
+    verification:
+      kind: text
+      output: Downloads/test.py
+      expected: expected/test_gold.py
+    evaluation_postconfig:
+      - action: save
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD13 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD13. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD13/Downloads/test.py
+        - fixtures/local-desktop/LD13/expected/test_gold.py
+      commands:
+        - code
+      urls: []
+
+  - id: LD14
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    source_case_id: 4bcb1253-a636-4df4-8cb0-a35c04dfef31
+    upstream_case_id: 4bcb1253-a636-4df4-8cb0-a35c04dfef31-WOS
+    difficulty: hard
+    split: confirmation
+    environment: Windows host / LibreOffice Writer and isolated file workspace
+    applications:
+      - LibreOffice Writer
+    official_evaluator: compare_pdfs
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official PDF comparison with the deterministic
+      gold PDF after host-path collection. The WindowsAgentArena VM file collector
+      and full DesktopEnv evaluator pipeline remain VM-only.
+    task: >-
+      Export the current document into PDF, keep the file name
+    fixture: >-
+      A deterministic Downloads/View_Person_Organizational_Summary.docx input and
+      matching gold PDF; the expected output keeps the base name and uses .pdf.
+    fixture_root: fixtures/local-desktop/LD14
+    run_root: runs/local-desktop/LD14
+    launches:
+      - command: C:\Program Files\LibreOffice\program\soffice.exe
+        args:
+          - -env:UserInstallation={run_uri}/.libreoffice-profile
+          - --writer
+          - '{run}\Downloads\View_Person_Organizational_Summary.docx'
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD14/Downloads as the opened
+      Downloads folder for this case and do not use the real user Downloads folder.
+    verification:
+      kind: pdf_text
+      output: Downloads/View_Person_Organizational_Summary.pdf
+      expected: expected/View_Person_Organizational_Summary_Gold.pdf
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD14 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD14. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD14/Downloads/View_Person_Organizational_Summary.docx
+        - fixtures/local-desktop/LD14/expected/View_Person_Organizational_Summary_Gold.pdf
+      commands:
+        - soffice
+      urls: []
+
+  - id: LD15
+    upstream: windows_agent_arena
+    source_upstream: osworld
+    source_case_id: 1e8df695-bd1b-45b3-b557-e7d599cf7597
+    upstream_case_id: 1e8df695-bd1b-45b3-b557-e7d599cf7597-WOS
+    difficulty: hard
+    split: development
+    environment: Windows host / LibreOffice Calc and isolated file workspace
+    applications:
+      - LibreOffice Calc
+    official_evaluator: compare_table(sheet_data, sheet_idx0=0, sheet_idx1=EI0)
+    evaluator_reuse: >-
+      OmniAct-adapted: reuse the official compare_table rules and deterministic
+      gold workbook after collecting the host output file. VM retrieval and the
+      complete WindowsAgentArena evaluator pipeline remain VM-only.
+    task: >-
+      Add a new column named "Profit" and calculate the profit for each week by
+      subtracting "COGS" from "Sales" in that column.
+    fixture: >-
+      A deterministic Downloads/WeeklySales.xlsx input and matching gold workbook;
+      each Profit value must equal Sales minus COGS in the official sheet-data
+      range.
+    fixture_root: fixtures/local-desktop/LD15
+    run_root: runs/local-desktop/LD15
+    launches:
+      - command: C:\Program Files\LibreOffice\program\soffice.exe
+        args:
+          - -env:UserInstallation={run_uri}/.libreoffice-profile
+          - --calc
+          - '{run}\Downloads\WeeklySales.xlsx'
+        track: true
+    local_task: >-
+      Treat OMNIACT_BENCH_HOME/runs/local-desktop/LD15/Downloads as the opened
+      Downloads folder for this case and do not use the real user Downloads folder.
+    verification:
+      kind: workbook_values
+      output: Downloads/WeeklySales.xlsx
+      expected: expected/6_WeeklySales_gt1.xlsx
+      rules:
+        - type: sheet_data
+          sheet_idx0: 0
+          sheet_idx1: EI0
+    evaluation_postconfig:
+      - action: save
+    reset: >-
+      Replace OMNIACT_BENCH_HOME/runs/local-desktop/LD15 with a recursive copy of
+      OMNIACT_BENCH_HOME/fixtures/local-desktop/LD15. Do not touch C: or real user
+      folders.
+    requirements:
+      paths:
+        - fixtures/local-desktop/LD15/Downloads/WeeklySales.xlsx
+        - fixtures/local-desktop/LD15/expected/6_WeeklySales_gt1.xlsx
+      commands:
+        - soffice
+      urls: []

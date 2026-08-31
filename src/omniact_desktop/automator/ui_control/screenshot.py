@@ -1,0 +1,1492 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+import base64
+import functools
+import logging
+import mimetypes
+import os
+import platform
+from abc import ABC, abstractmethod
+from io import BytesIO
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Any
+
+from PIL import Image, ImageDraw, ImageFont, ImageGrab
+
+# Conditional imports for Windows-specific packages
+if TYPE_CHECKING or platform.system() == "Windows":
+    from pywinauto.controls.uiawrapper import UIAWrapper
+    from pywinauto.win32structures import RECT
+else:
+    UIAWrapper = Any
+    RECT = Any
+
+from omniact_desktop import utils
+from desktop_config.config_loader import get_ufo_config
+
+if TYPE_CHECKING:
+    from omniact_desktop.agents.processors.schemas.target import TargetInfo
+
+ufo_config = get_ufo_config()
+logger = logging.getLogger(__name__)
+
+DEFAULT_PNG_COMPRESS_LEVEL = int(ufo_config.system.default_png_compress_level)
+
+
+class Photographer(ABC):
+    """
+    Abstract class for the photographer.
+    """
+
+    @abstractmethod
+    def capture(self) -> Image.Image:
+        pass
+
+    @staticmethod
+    def rescale_image(image: Image.Image, scaler: List[int]) -> Image.Image:
+        """
+        Rescale an image.
+        :param image: The image to rescale.
+        :param scale: The scale factor.
+        :return: The rescaled image.
+        """
+
+        raw_width, raw_height = image.size
+        scale_ratio = min(scaler[0] / raw_width, scaler[1] / raw_height)
+        new_width = int(raw_width * scale_ratio)
+        new_height = int(raw_height * scale_ratio)
+
+        resized_image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        new_image = Image.new("RGB", scaler, (0, 0, 0))
+        new_image.paste(
+            resized_image,
+            (0, 0),
+        )
+
+        return new_image
+
+
+class ControlPhotographer(Photographer):
+    """
+    Class to capture the control screenshot.
+    """
+
+    def __init__(self, control: UIAWrapper):
+        """
+        Initialize the ControlPhotographer.
+        :param control: The control item to capture.
+        """
+        self.control = control
+
+    def capture(self, save_path: str = None, scalar: List[int] = None) -> Image.Image:
+        """
+        Capture a screenshot of the control window.
+        Falls back through: pywinauto -> PrintWindow -> desktop screenshot.
+        :param save_path: The path to save the screenshot.
+        :return: The screenshot.
+        """
+        screenshot = None
+
+        # Attempt 1: capture via pywinauto
+        try:
+            screenshot = self.control.capture_as_image()
+        except Exception as e:
+            logger.warning(f"control.capture_as_image() failed: {e}")
+
+        # Validate the captured image
+        if screenshot is not None:
+            try:
+                w, h = screenshot.size
+                if w <= 1 or h <= 1:
+                    logger.warning("control.capture_as_image() returned a tiny image, treating as invalid")
+                    screenshot = None
+            except Exception:
+                screenshot = None
+
+        # Attempt 2: PrintWindow API (works on disconnected RDP sessions)
+        if screenshot is None:
+            try:
+                hwnd = self.control.handle
+                if hwnd:
+                    logger.info("Trying PrintWindow for window capture (RDP-safe)")
+                    screenshot = _win32_print_window(hwnd)
+                    if screenshot is not None:
+                        w, h = screenshot.size
+                        if w <= 1 or h <= 1 or screenshot.getbbox() is None:
+                            logger.warning("PrintWindow returned empty/tiny image")
+                            screenshot = None
+            except Exception as e:
+                logger.warning(f"PrintWindow fallback failed: {e}")
+
+        # Attempt 3: fall back to desktop capture
+        if screenshot is None:
+            logger.info("Falling back to desktop screenshot for window capture")
+            desktop = DesktopPhotographer(all_screens=False)
+            screenshot = desktop.capture()
+
+        if scalar is not None:
+            screenshot = self.rescale_image(screenshot, scalar)
+
+        if save_path is not None and screenshot is not None:
+            screenshot.save(save_path, compress_level=DEFAULT_PNG_COMPRESS_LEVEL)
+        return screenshot
+
+
+def _win32_print_window(hwnd: int) -> Optional[Image.Image]:
+    """
+    Capture a window using the PrintWindow API.
+    This works even on disconnected RDP sessions because PrintWindow asks the
+    window to paint itself to a device context rather than reading from the
+    screen buffer (which doesn't exist when RDP is disconnected).
+    :param hwnd: The window handle to capture.
+    :return: A PIL Image of the window, or None on failure.
+    """
+    try:
+        import ctypes
+        import win32gui
+        import win32ui
+        import win32con
+
+        # Get window dimensions
+        rect = win32gui.GetWindowRect(hwnd)
+        width = rect[2] - rect[0]
+        height = rect[3] - rect[1]
+
+        if width <= 0 or height <= 0:
+            return None
+
+        hwnd_dc = win32gui.GetWindowDC(hwnd)
+        mfc_dc = win32ui.CreateDCFromHandle(hwnd_dc)
+        save_dc = mfc_dc.CreateCompatibleDC()
+
+        bmp = win32ui.CreateBitmap()
+        bmp.CreateCompatibleBitmap(mfc_dc, width, height)
+        save_dc.SelectObject(bmp)
+
+        # PW_RENDERFULLCONTENT = 2 — works on Windows 8.1+ and captures
+        # the full content even when the window is occluded or off-screen.
+        PW_RENDERFULLCONTENT = 2
+        result = ctypes.windll.user32.PrintWindow(hwnd, save_dc.GetSafeHdc(), PW_RENDERFULLCONTENT)
+
+        if not result:
+            # Fallback to PW_CLIENTONLY = 1
+            result = ctypes.windll.user32.PrintWindow(hwnd, save_dc.GetSafeHdc(), 1)
+
+        if not result:
+            save_dc.DeleteDC()
+            mfc_dc.DeleteDC()
+            win32gui.ReleaseDC(hwnd, hwnd_dc)
+            win32gui.DeleteObject(bmp.GetHandle())
+            return None
+
+        bmpinfo = bmp.GetInfo()
+        bmpstr = bmp.GetBitmapBits(True)
+        screenshot = Image.frombuffer(
+            "RGB",
+            (bmpinfo["bmWidth"], bmpinfo["bmHeight"]),
+            bmpstr,
+            "raw",
+            "BGRX",
+            0,
+            1,
+        )
+
+        # Cleanup GDI objects
+        save_dc.DeleteDC()
+        mfc_dc.DeleteDC()
+        win32gui.ReleaseDC(hwnd, hwnd_dc)
+        win32gui.DeleteObject(bmp.GetHandle())
+
+        return screenshot
+    except Exception as e:
+        logger.warning(f"PrintWindow capture failed for hwnd={hwnd}: {e}")
+        return None
+
+
+def _win32_grab_screen() -> Optional[Image.Image]:
+    """
+    Fallback screen capture using win32 APIs when PIL ImageGrab fails.
+    Tries BitBlt first (fast), then PrintWindow on the desktop window
+    (works on disconnected RDP sessions).
+    :return: A PIL Image of the screen, or None on failure.
+    """
+    # Attempt 1: BitBlt from desktop DC (fast, but fails on disconnected RDP)
+    try:
+        import win32gui
+        import win32ui
+        import win32con
+        import win32api
+
+        width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+        height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+
+        hdesktop = win32gui.GetDesktopWindow()
+        desktop_dc = win32gui.GetWindowDC(hdesktop)
+        img_dc = win32ui.CreateDCFromHandle(desktop_dc)
+        mem_dc = img_dc.CreateCompatibleDC()
+
+        screenshot_bmp = win32ui.CreateBitmap()
+        screenshot_bmp.CreateCompatibleBitmap(img_dc, width, height)
+        mem_dc.SelectObject(screenshot_bmp)
+        mem_dc.BitBlt((0, 0), (width, height), img_dc, (0, 0), win32con.SRCCOPY)
+
+        bmpinfo = screenshot_bmp.GetInfo()
+        bmpstr = screenshot_bmp.GetBitmapBits(True)
+        screenshot = Image.frombuffer(
+            "RGB",
+            (bmpinfo["bmWidth"], bmpinfo["bmHeight"]),
+            bmpstr,
+            "raw",
+            "BGRX",
+            0,
+            1,
+        )
+
+        mem_dc.DeleteDC()
+        img_dc.DeleteDC()
+        win32gui.ReleaseDC(hdesktop, desktop_dc)
+        win32gui.DeleteObject(screenshot_bmp.GetHandle())
+
+        # Validate: check it's not all-black (common on disconnected RDP)
+        if screenshot.getbbox() is not None:
+            return screenshot
+        else:
+            logger.warning("BitBlt returned all-black image (likely disconnected RDP)")
+    except Exception as e:
+        logger.warning(f"win32 BitBlt screen grab failed: {e}")
+
+    # Attempt 2: PrintWindow on the desktop window
+    try:
+        import win32gui
+        hdesktop = win32gui.GetDesktopWindow()
+        screenshot = _win32_print_window(hdesktop)
+        if screenshot is not None and screenshot.getbbox() is not None:
+            return screenshot
+        else:
+            logger.warning("PrintWindow on desktop returned empty image")
+    except Exception as e:
+        logger.warning(f"PrintWindow desktop capture failed: {e}")
+
+    # Attempt 3: PrintWindow on the foreground window as a best-effort
+    # desktop substitute (works on disconnected RDP for GUI windows)
+    try:
+        import win32gui
+        fg_hwnd = win32gui.GetForegroundWindow()
+        if fg_hwnd and fg_hwnd != 0:
+            logger.info("Trying PrintWindow on foreground window as desktop fallback")
+            screenshot = _win32_print_window(fg_hwnd)
+            if screenshot is not None and screenshot.getbbox() is not None:
+                return screenshot
+            else:
+                logger.warning("PrintWindow on foreground window returned empty image")
+    except Exception as e:
+        logger.warning(f"PrintWindow foreground window capture failed: {e}")
+
+    logger.error("All win32 screen grab methods failed")
+    return None
+
+
+class DesktopPhotographer(Photographer):
+    """
+    Class to capture the desktop screenshot.
+    """
+
+    def __init__(self, all_screens=True) -> None:
+        """
+        Initialize the DesktopPhotographer.
+        :param all_screens: Whether to capture all screens.
+        """
+        self.all_screens = all_screens
+
+    def capture(self, save_path: str = None, scalar: List[int] = None) -> Image.Image:
+        """
+        Capture a screenshot with fallbacks.
+        Tries: ImageGrab(all_screens) -> ImageGrab(primary only) -> win32 API.
+        :param save_path: The path to save the screenshot.
+        :return: The screenshot.
+        """
+        screenshot = None
+
+        # Attempt 1: ImageGrab with requested all_screens setting
+        try:
+            screenshot = ImageGrab.grab(all_screens=self.all_screens)
+        except Exception as e:
+            logger.warning(f"ImageGrab.grab(all_screens={self.all_screens}) failed: {e}")
+
+        # Attempt 2: If all_screens was True, retry with primary screen only
+        if screenshot is None and self.all_screens:
+            try:
+                logger.info("Retrying screenshot with primary screen only")
+                screenshot = ImageGrab.grab(all_screens=False)
+            except Exception as e:
+                logger.warning(f"ImageGrab.grab(all_screens=False) also failed: {e}")
+
+        # Attempt 3: win32 API fallback
+        if screenshot is None:
+            logger.info("Falling back to win32 API screen capture")
+            screenshot = _win32_grab_screen()
+
+        if screenshot is None:
+            logger.error("All screenshot capture methods failed; returning 1x1 placeholder image")
+            screenshot = Image.new("RGB", (1, 1), (0, 0, 0))
+
+        if scalar is not None:
+            screenshot = self.rescale_image(screenshot, scalar)
+        if save_path is not None and screenshot is not None:
+            screenshot.save(save_path, compress_level=DEFAULT_PNG_COMPRESS_LEVEL)
+        return screenshot
+
+
+class PhotographerDecorator(Photographer):
+    """
+    Class to decorate the photographer.
+    """
+
+    def __init__(self, photographer: Photographer) -> None:
+        """
+        Initialize the PhotographerDecorator.
+        :param photographer: The photographer.
+        """
+        self.photographer = photographer
+
+    def capture(self, save_path=None) -> Image.Image:
+        """
+        Capture a screenshot.
+        :param save_path: The path to save the screenshot.
+        :return: The screenshot.
+        """
+        return self.photographer.capture(save_path)
+
+    @staticmethod
+    def coordinate_adjusted(window_rect: RECT, control_rect: RECT) -> Tuple:
+        """
+        Adjust the coordinates of the control rectangle to the window rectangle.
+        :param window_rect: The window rectangle.
+        :param control_rect: The control rectangle.
+        :return: The adjusted control rectangle (left, top, right, bottom), relative to the window rectangle.
+        """
+        # (left, top, right, bottom)
+        adjusted_rect = (
+            control_rect.left - window_rect.left,
+            control_rect.top - window_rect.top,
+            control_rect.right - window_rect.left,
+            control_rect.bottom - window_rect.top,
+        )
+
+        return adjusted_rect
+
+    @staticmethod
+    def coordinate_adjusted_to_relative(window_rect: RECT, control_rect: RECT) -> Tuple:
+        """
+        Adjust the coordinates of the control rectangle to the window rectangle.
+        :param window_rect: The window rectangle.
+        :param control_rect: The control rectangle.
+        :return: The adjusted control rectangle (left, top, right, bottom), relative to the window rectangle.
+        """
+        # (left, top, right, bottom)
+        width = window_rect.right - window_rect.left
+        height = window_rect.bottom - window_rect.top
+
+        relative_rect = (
+            float(control_rect.left - window_rect.left) / width,
+            float(control_rect.top - window_rect.top) / height,
+            float(control_rect.right - window_rect.left) / width,
+            float(control_rect.bottom - window_rect.top) / height,
+        )
+
+        return relative_rect
+
+
+class RectangleDecorator(PhotographerDecorator):
+    """
+    Class to draw rectangles on the screenshot.
+    """
+
+    def __init__(
+        self,
+        photographer: Photographer,
+        color: str,
+        width: float,
+        sub_control_list: List[UIAWrapper],
+    ) -> None:
+        """
+        Initialize the RectangleDecorator.
+        :param photographer: The photographer.
+        :param coordinate: The coordinate of the rectangle.
+        :param color: The color of the rectangle.
+        :param width: The width of the rectangle.
+        :param sub_control_list: The list of the controls to draw rectangles on.
+        """
+        super().__init__(photographer)
+        self.color = color
+        self.width = width
+        self.sub_control_list = sub_control_list
+
+    @staticmethod
+    def draw_rectangles(
+        image: Image.Image, coordinate: tuple, color: str = "red", width: int = 3
+    ):
+        """
+        Draw a rectangle on the image.
+        :param image: The image to draw on.
+        :param coordinate: The coordinate of the rectangle.
+        :param color: The color of the rectangle.
+        :param width: The width of the rectangle.
+        :return: The image with the rectangle.
+        """
+        draw = ImageDraw.Draw(image)
+        draw.rectangle(coordinate, outline=color, width=width)
+        return image
+
+    def capture(
+        self, save_path: str, background_screenshot_path: Optional[str] = None
+    ) -> Image.Image:
+        """
+        Capture a screenshot with rectangles.
+        :param save_path: The path to save the screenshot.
+        :param background_screenshot_path: The path of the background screenshot, optional. If provided, the rectangle will be drawn on the background screenshot instead of the control screenshot.
+        :return: The screenshot with rectangles.
+        """
+
+        if background_screenshot_path is not None and os.path.exists(
+            background_screenshot_path
+        ):
+            screenshot = Image.open(background_screenshot_path)
+        else:
+            screenshot = self.photographer.capture()
+
+        window_rect = self.photographer.control.rectangle()
+
+        for control in self.sub_control_list:
+            if control:
+                control_rect = control.rectangle()
+                adjusted_rect = self.coordinate_adjusted(window_rect, control_rect)
+                screenshot = self.draw_rectangles(
+                    screenshot, coordinate=adjusted_rect, color=self.color
+                )
+        if save_path is not None and screenshot is not None:
+            screenshot.save(save_path, compress_level=DEFAULT_PNG_COMPRESS_LEVEL)
+        return screenshot
+
+    def capture_from_adjusted_coords(
+        self,
+        control_adjusted_coords: List[Dict[str, Dict[str, float]]],
+        save_path: str,
+        background_screenshot_path: Optional[str] = None,
+    ):
+        """
+        Capture a screenshot with rectangles when the adjusted coordinates are provided.
+        :param control_adjusted_coords: The adjusted coordinates of the control rectangles.
+        :param save_path: The path to save the screenshot.
+        :param background_screenshot_path: The path of the background screenshot, optional. If provided, the rectangle will be drawn on the background screenshot instead of the control screenshot.
+        :return: The screenshot with rectangles.
+        """
+        if background_screenshot_path is not None and os.path.exists(
+            background_screenshot_path
+        ):
+            screenshot = Image.open(background_screenshot_path)
+        else:
+            screenshot = self.photographer.capture()
+
+        for control_adjusted_coord in control_adjusted_coords:
+            if control_adjusted_coord:
+                control_rect = (
+                    control_adjusted_coord["left"],
+                    control_adjusted_coord["top"],
+                    control_adjusted_coord["right"],
+                    control_adjusted_coord["bottom"],
+                )
+                screenshot = self.draw_rectangles(
+                    screenshot, coordinate=control_rect, color=self.color
+                )
+        if save_path is not None and screenshot is not None:
+            screenshot.save(save_path, compress_level=DEFAULT_PNG_COMPRESS_LEVEL)
+        return screenshot
+
+
+class AnnotationDecorator(PhotographerDecorator):
+    """
+    Class to annotate the controls on the screenshot.
+    """
+
+    def __init__(
+        self,
+        screenshot: Image.Image,
+        sub_control_list: List[UIAWrapper],
+        annotation_type: str = "number",
+        color_diff: bool = True,
+        color_default: str = "#FFF68F",
+    ) -> None:
+        """
+        Initialize the AnnotationDecorator.
+        :param screenshot: The screenshot.
+        :param sub_control_list: The list of the controls to annotate.
+        :param annotation_type: The type of the annotation.
+        :param color_diff: Whether to use different colors for different control types.
+        :param color_default: The default color of the annotation.
+        """
+        super().__init__(screenshot)
+        self.sub_control_list = sub_control_list
+        self.annotation_type = annotation_type
+        self.color_diff = color_diff
+        self.color_default = color_default
+
+    @staticmethod
+    def draw_rectangles_controls(
+        image: Image.Image,
+        coordinate: tuple,
+        label_text: str,
+        botton_margin: int = 5,
+        border_width: int = 2,
+        font_size: int = 32,
+        font_color: str = "#000000",
+        border_color: str = "#FF0000",
+        button_color: str = "#FFF68F",
+    ) -> Image.Image:
+        """
+        Draw a rectangle around the control and label it.
+        :param image: The image to draw on.
+        :param coordinate: The coordinate of the control.
+        :param label_text: The text label of the control.
+        :param botton_margin: The margin of the button.
+        :param border_width: The width of the border.
+        :param font_size: The size of the font.
+        :param font_color: The color of the font.
+        :param border_color: The color of the border.
+        :param button_color: The color of the button.
+        return: The image with the control rectangle and label.
+        """
+        button_img = AnnotationDecorator._get_button_img(
+            label_text,
+            botton_margin=botton_margin,
+            border_width=border_width,
+            font_size=font_size,
+            font_color=font_color,
+            border_color=border_color,
+            button_color=button_color,
+        )
+        # put button on source image
+        image.paste(button_img, (coordinate[0], coordinate[1]))
+        return image
+
+    @staticmethod
+    @functools.lru_cache(maxsize=2048, typed=False)
+    def _get_button_img(
+        label_text: str,
+        botton_margin: int = 5,
+        border_width: int = 2,
+        font_size: int = 25,
+        font_color: str = "#000000",
+        border_color: str = "#FF0000",
+        button_color: str = "#FFF68F",
+    ):
+        font = AnnotationDecorator._get_font("arial.ttf", font_size)
+        text_size = font.getbbox(label_text)
+
+        # set button size + margins
+        button_size = (text_size[2] + botton_margin, text_size[3] + botton_margin)
+        # create image with correct size and black background
+        button_img = Image.new("RGBA", button_size, button_color)
+        button_draw = ImageDraw.Draw(button_img)
+        button_draw.text(
+            (botton_margin / 2, botton_margin / 2),
+            label_text,
+            font=font,
+            fill=font_color,
+        )
+
+        # draw red rectangle around button
+        ImageDraw.Draw(button_img).rectangle(
+            [(0, 0), (button_size[0] - 1, button_size[1] - 1)],
+            outline=border_color,
+            width=border_width,
+        )
+        return button_img
+
+    @staticmethod
+    @functools.lru_cache(maxsize=64, typed=False)
+    def _get_font(name: str, size: int):
+        return ImageFont.truetype(name, size)
+
+    @staticmethod
+    def number_to_letter(n: int):
+        """
+        Convert number to letter.
+        :param n: The number to convert.
+        :return: The letter converted from the number.
+        """
+        if n < 0:
+            return "Invalid input"
+
+        result = ""
+        while n >= 0:
+            remainder = n % 26
+            result = chr(65 + remainder) + result  # 65 is the ASCII code for 'A'
+            n = n // 26 - 1
+            if n < 0:
+                break
+
+        return result
+
+    def get_annotation_dict(self) -> Dict[str, UIAWrapper]:
+        """
+        Get the dictionary of the annotations.
+        :return: The dictionary of the annotations.
+        """
+        annotation_dict = {}
+        for i, control in enumerate(self.sub_control_list):
+            if self.annotation_type == "number":
+                label_text = str(i + 1)
+            elif self.annotation_type == "letter":
+                label_text = self.number_to_letter(i)
+            annotation_dict[label_text] = control
+        return annotation_dict
+
+    def get_cropped_icons_dict(
+        self, annotation_dict: Dict[str, UIAWrapper]
+    ) -> Dict[str, Image.Image]:
+        """
+        Get the dictionary of the cropped icons.
+        :return: The dictionary of the cropped icons.
+        """
+        cropped_icons_dict = {}
+        image = self.photographer.capture()
+        window_rect = self.photographer.control.rectangle()
+
+        for label_text, control in annotation_dict.items():
+            control_rect = control.rectangle()
+            cropped_icons_dict[label_text] = image.crop(
+                self.coordinate_adjusted(window_rect, control_rect)
+            )
+
+        return cropped_icons_dict
+
+    def capture_with_annotation_dict(
+        self,
+        annotation_dict: Dict[str, UIAWrapper],
+        save_path: Optional[str] = None,
+        path: Optional[str] = None,
+        highlight_bbox: bool = False,
+    ) -> Image.Image:
+        """
+        Capture a screenshot with the given annotation dictionary.
+        :param annotation_dict: The dictionary of the controls with annotation labels as keys.
+        :param save_path: The path to save the screenshot.
+        :param path: The path to the image.
+        :param highlight_bbox: Whether to highlight control bounding boxes with semi-transparent overlays.
+        :return: The screenshot with annotations.
+        """
+
+        window_rect = self.photographer.control.rectangle()
+        if path:
+            if os.path.exists(path):
+                screenshot_annotated = Image.open(path)
+            else:
+                screenshot_annotated = self.photographer.capture()
+        else:
+            screenshot_annotated = self.photographer.capture()
+
+        color_dict = ufo_config.system.annotation_colors
+
+        # First pass: Draw bounding box highlights if requested
+        if highlight_bbox:
+            # Create an overlay for semi-transparent rectangles
+            overlay = Image.new("RGBA", screenshot_annotated.size, (255, 255, 255, 0))
+            overlay_draw = ImageDraw.Draw(overlay)
+
+            for label_text, control in annotation_dict.items():
+                control_rect = control.rectangle()
+                adjusted_rect = self.coordinate_adjusted(window_rect, control_rect)
+
+                # Get the color for this control type
+                button_color = (
+                    color_dict.get(
+                        control.element_info.control_type, self.color_default
+                    )
+                    if self.color_diff
+                    else self.color_default
+                )
+
+                # Convert hex color to RGBA with transparency
+                if button_color.startswith("#"):
+                    # Remove # and convert hex to RGB
+                    rgb = tuple(int(button_color[i : i + 2], 16) for i in (1, 3, 5))
+                    rgba_color = rgb + (80,)  # 80/255 ≈ 31% opacity
+                else:
+                    # Default to yellow with transparency if color parsing fails
+                    rgba_color = (255, 246, 143, 80)
+
+                # Draw semi-transparent rectangle with light red border
+                overlay_draw.rectangle(
+                    adjusted_rect,
+                    fill=rgba_color,
+                    outline=(255, 160, 160, 180),
+                    width=2,
+                )
+
+            # Composite the overlay onto the screenshot
+            screenshot_annotated = Image.alpha_composite(
+                screenshot_annotated.convert("RGBA"), overlay
+            ).convert("RGB")
+
+        # Second pass: Draw annotation labels
+        for label_text, control in annotation_dict.items():
+            control_rect = control.rectangle()
+            adjusted_rect = self.coordinate_adjusted(window_rect, control_rect)
+            adjusted_coordinate = (adjusted_rect[0], adjusted_rect[1])
+            screenshot_annotated = self.draw_rectangles_controls(
+                screenshot_annotated,
+                adjusted_coordinate,
+                label_text,
+                font_size=ufo_config.system.annotation_font_size,
+                button_color=(
+                    color_dict.get(
+                        control.element_info.control_type, self.color_default
+                    )
+                    if self.color_diff
+                    else self.color_default
+                ),
+            )
+
+        if save_path is not None and screenshot_annotated is not None:
+            screenshot_annotated.save(
+                save_path, compress_level=DEFAULT_PNG_COMPRESS_LEVEL
+            )
+
+        return screenshot_annotated
+
+    def capture(self, save_path: Optional[str] = None) -> Image.Image:
+        """
+        Capture a screenshot with annotations.
+        :param save_path: The path to save the screenshot.
+        :return: The screenshot with annotations.
+        """
+
+        annotation_dict = self.get_annotation_dict()
+        self.capture_with_annotation_dict(annotation_dict, save_path)
+
+
+class TargetAnnotationDecorator(PhotographerDecorator):
+    """
+    Class to annotate controls using TargetInfo instead of UIAWrapper.
+    This avoids the need to convert between TargetInfo and UIAWrapper.
+    """
+
+    def __init__(
+        self,
+        screenshot: Optional[Image.Image],
+        annotation_type: str = "number",
+        color_diff: bool = True,
+        color_default: str = "#FFF68F",
+        application_window_info: Optional["TargetInfo"] = None,
+    ) -> None:
+        """
+        Initialize the TargetAnnotationDecorator.
+        :param screenshot: The screenshot (can be None, will be loaded from path).
+        :param target_list: The list of TargetInfo objects.
+        :param annotation_type: The type of the annotation.
+        :param color_diff: Whether to use different colors for different control types.
+        :param color_default: The default color of the annotation.
+        """
+        super().__init__(screenshot)
+        self.annotation_type = annotation_type
+        self.color_diff = color_diff
+        self.color_default = color_default
+        self.application_window_info = application_window_info
+
+    def _convert_absolute_to_relative_coords(
+        self, target_rect: List[int]
+    ) -> Tuple[int, int, int, int]:
+        """
+        Convert absolute screen coordinates to relative coordinates within the application window.
+        Similar to coordinate_adjusted method but for TargetInfo objects.
+        :param target_rect: TargetInfo rect in format [left, top, right, bottom] (absolute screen coordinates)
+        :return: Tuple of (left, top, right, bottom) relative to the application window
+        """
+        if not self.application_window_info or not self.application_window_info.rect:
+            # If no application window info, assume coordinates are already relative
+            left, top, right, bottom = target_rect
+            return (left, top, right, bottom)
+
+        # Application window rect: [left, top, right, bottom]
+        app_left, app_top, _, _ = self.application_window_info.rect
+
+        # Target rect: [left, top, right, bottom] (absolute coordinates)
+        target_left, target_top, target_right, target_bottom = target_rect
+
+        # Convert to relative coordinates
+        relative_left = target_left - app_left
+        relative_top = target_top - app_top
+        relative_right = target_right - app_left
+        relative_bottom = target_bottom - app_top
+
+        return (relative_left, relative_top, relative_right, relative_bottom)
+
+    def capture_with_target_info(
+        self,
+        target_list: List["TargetInfo"],
+        save_path: Optional[str] = None,
+        path: Optional[str] = None,
+        highlight_bbox: bool = False,
+    ) -> Image.Image:
+        """
+        Capture a screenshot with annotations using target information.
+        :param target_list: The list of TargetInfo objects.
+        :param save_path: The path to save the screenshot.
+        :param path: The path to the background image.
+        :param highlight_bbox: Whether to highlight control bounding boxes.
+        :return: The screenshot with annotations.
+        """
+        # Load screenshot from path (since we don't have application window)
+        if path and os.path.exists(path):
+            screenshot_annotated = Image.open(path)
+        else:
+            raise ValueError("Background screenshot path is required and must exist")
+
+        color_dict = ufo_config.system.annotation_colors
+
+        # First pass: Draw bounding box highlights if requested
+        if highlight_bbox:
+            overlay = Image.new("RGBA", screenshot_annotated.size, (255, 255, 255, 0))
+            overlay_draw = ImageDraw.Draw(overlay)
+
+            for target in target_list:
+                if not target.rect or len(target.rect) < 4:
+                    continue
+
+                # Convert absolute coordinates to relative coordinates within the application window
+                adjusted_rect = self._convert_absolute_to_relative_coords(target.rect)
+
+                # Get the color for this control type
+                button_color = (
+                    color_dict.get(target.type, self.color_default)
+                    if self.color_diff
+                    else self.color_default
+                )
+
+                # Convert hex color to RGBA with transparency
+                if button_color and button_color.startswith("#"):
+                    rgb = tuple(int(button_color[i : i + 2], 16) for i in (1, 3, 5))
+                    rgba_color = rgb + (80,)
+                else:
+                    rgba_color = (255, 246, 143, 80)
+
+                # Draw semi-transparent rectangle
+                overlay_draw.rectangle(
+                    adjusted_rect,
+                    fill=rgba_color,
+                    outline=(255, 160, 160, 180),
+                    width=2,
+                )
+
+            # Composite the overlay onto the screenshot
+            screenshot_annotated = Image.alpha_composite(
+                screenshot_annotated.convert("RGBA"), overlay
+            ).convert("RGB")
+
+        # Second pass: Draw annotation labels
+        for i, target in enumerate(target_list):
+            if not target.rect or len(target.rect) < 4:
+                continue
+
+            # Convert absolute coordinates to relative coordinates within the application window
+            adjusted_rect = self._convert_absolute_to_relative_coords(target.rect)
+            adjusted_coordinate = (adjusted_rect[0], adjusted_rect[1])
+
+            # Generate label text
+            label_text = target.id or str(i + 1)
+
+            screenshot_annotated = AnnotationDecorator.draw_rectangles_controls(
+                screenshot_annotated,
+                adjusted_coordinate,
+                label_text,
+                font_size=ufo_config.system.annotation_font_size,
+                button_color=(
+                    color_dict.get(target.type, self.color_default)
+                    if self.color_diff
+                    else self.color_default
+                ),
+            )
+
+        if save_path is not None and screenshot_annotated is not None:
+            screenshot_annotated.save(
+                save_path, compress_level=ufo_config.system.default_png_compress_level
+            )
+        if not screenshot_annotated:
+            logger.warning("Screenshot annotated is not valid.")
+
+        return screenshot_annotated
+
+
+class PhotographerFactory:
+    @staticmethod
+    def create_screenshot(screenshot_type: str, *args, **kwargs):
+        """
+        Create a screenshot.
+        :param screenshot_type: The type of the screenshot.
+        :return: The screenshot photographer.
+        """
+        if screenshot_type == "app_window":
+            return ControlPhotographer(*args, **kwargs)
+        elif screenshot_type == "desktop_window":
+            return DesktopPhotographer(*args, **kwargs)
+        else:
+            raise ValueError("Invalid screenshot type")
+
+
+class PhotographerFacade:
+    """
+    The facade class for the photographer.
+    """
+
+    _instance = None
+    _empty_image_string = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
+    def __new__(cls):
+        """
+        Singleton pattern.
+        """
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.screenshot_factory = PhotographerFactory()
+        return cls._instance
+
+    def __init__(self):
+        pass
+
+    def capture_app_window_screenshot(
+        self, control: UIAWrapper, save_path=None, scalar: List[int] = None
+    ) -> Image.Image:
+        """
+        Capture the control screenshot.
+        :param control: The control item to capture.
+        :param save_path: The path to save the screenshot.
+        :pram scalar: The scale factor.
+        :return: The screenshot.
+        """
+        screenshot = self.screenshot_factory.create_screenshot("app_window", control)
+        return screenshot.capture(save_path, scalar)
+
+    def capture_desktop_screen_screenshot(
+        self, all_screens=True, save_path=None
+    ) -> Image.Image:
+        """
+        Capture the desktop screenshot.
+        :param all_screens: Whether to capture all screens.
+        :return: The screenshot.
+        """
+        screenshot = self.screenshot_factory.create_screenshot(
+            "desktop_window", all_screens
+        )
+        return screenshot.capture(save_path)
+
+    def capture_app_window_screenshot_with_rectangle(
+        self,
+        control: UIAWrapper,
+        color: str = "red",
+        width=3,
+        sub_control_list: List[UIAWrapper] = None,
+        background_screenshot_path: Optional[str] = None,
+        save_path: Optional[str] = None,
+    ) -> Image.Image:
+        """
+        Capture the control screenshot with a rectangle.
+        :param control: The control item to capture.
+        :param coordinate: The coordinate of the rectangle.
+        :param color: The color of the rectangle.
+        :param width: The width of the rectangle.
+        :param sub_control_list: The list of the controls to draw rectangles on.
+        :param background_screenshot_path: The path of the background screenshot, optional. If provided, the rectangle will be drawn on the background screenshot instead of the control screenshot.
+        :param save_path: The path to save the screenshot.
+        :return: The screenshot.
+        """
+        screenshot = self.screenshot_factory.create_screenshot("app_window", control)
+        screenshot = RectangleDecorator(screenshot, color, width, sub_control_list)
+        return screenshot.capture(save_path, background_screenshot_path)
+
+    def capture_app_window_screenshot_with_rectangle_from_adjusted_coords(
+        self,
+        control: UIAWrapper,
+        color: str = "red",
+        width=3,
+        control_adjusted_coords: List[Dict[str, Dict[str, float]]] = [],
+        background_screenshot_path: Optional[str] = None,
+        save_path: Optional[str] = None,
+    ) -> Image.Image:
+        """
+        Capture the control screenshot with a rectangle.
+        :param control: The control item to capture.
+        :param coordinate: The coordinate of the rectangle.
+        :param color: The color of the rectangle.
+        :param width: The width of the rectangle.
+        :param sub_control_list: The list of the controls to draw rectangles on.
+        :param background_screenshot_path: The path of the background screenshot, optional. If provided, the rectangle will be drawn on the background screenshot instead of the control screenshot.
+        :param save_path: The path to save the screenshot.
+        :return: The screenshot.
+        """
+        screenshot = self.screenshot_factory.create_screenshot("app_window", control)
+        screenshot = RectangleDecorator(screenshot, color, width, [])
+
+        return screenshot.capture_from_adjusted_coords(
+            control_adjusted_coords=control_adjusted_coords,
+            save_path=save_path,
+            background_screenshot_path=background_screenshot_path,
+        )
+
+    def capture_app_window_screenshot_with_annotation_dict(
+        self,
+        control: UIAWrapper,
+        annotation_control_dict: Dict[str, UIAWrapper],
+        annotation_type: str = "number",
+        color_diff: bool = True,
+        color_default: str = "#FFF68F",
+        save_path: Optional[str] = None,
+        path: Optional[str] = None,
+        highlight_bbox: bool = False,
+    ) -> Image.Image:
+        """
+        Capture the control screenshot with annotations.
+        :param control: The control item to capture.
+        :param annotation_control_dict: The dictionary of the controls with annotation labels as keys.
+        :param annotation_type: The type of the annotation.
+        :param color_diff: Whether to use different colors for different control types.
+        :param color_default: The default color of the annotation.
+        :param highlight_bbox: Whether to highlight control bounding boxes with semi-transparent overlays.
+        :return: The screenshot.
+        """
+        screenshot = self.screenshot_factory.create_screenshot("app_window", control)
+        sub_control_list = list(annotation_control_dict.values())
+        screenshot = AnnotationDecorator(
+            screenshot, sub_control_list, annotation_type, color_diff, color_default
+        )
+        return screenshot.capture_with_annotation_dict(
+            annotation_control_dict, save_path, path, highlight_bbox
+        )
+
+    def capture_app_window_screenshot_with_annotation(
+        self,
+        control: UIAWrapper,
+        sub_control_list: List[UIAWrapper],
+        annotation_type: str = "number",
+        color_diff: bool = True,
+        color_default: str = "#FFF68F",
+        save_path: Optional[str] = None,
+    ) -> Image.Image:
+        """
+        Capture the control screenshot with annotations.
+        :param control: The control item to capture.
+        :param sub_control_list: The list of the controls to annotate.
+        :param annotation_type: The type of the annotation.
+        :param color_diff: Whether to use different colors for different control types.
+        :param color_default: The default color of the annotation.
+        :param filtered_control_info: The list of the filtered control info.
+        :return: The screenshot.
+        """
+        screenshot = self.screenshot_factory.create_screenshot("app_window", control)
+        screenshot = AnnotationDecorator(
+            screenshot, sub_control_list, annotation_type, color_diff, color_default
+        )
+        return screenshot.capture(save_path)
+
+    def capture_app_window_screenshot_with_point_from_path(
+        self,
+        point_list: List[Tuple[int]],
+        background_screenshot_path: Optional[str] = None,
+        save_path: Optional[str] = None,
+        color: str = "red",
+        point_radius: int = 5,
+    ) -> Image.Image:
+        """
+        Capture the control screenshot with a rectangle.
+        :param point_list: The list of the points to draw on the screenshot.
+        :param background_screenshot_path: The path of the background screenshot, optional. If provided, the rectangle will be drawn on the background screenshot instead of the control screenshot.
+        :param save_path: The path to save the screenshot.
+        :return: The screenshot.
+        """
+        if not os.path.exists(background_screenshot_path):
+            return None
+
+        screenshot = Image.open(background_screenshot_path)
+        draw = ImageDraw.Draw(screenshot)
+        for point in point_list:
+            draw.ellipse(
+                (
+                    point[0] - point_radius,
+                    point[1] - point_radius,
+                    point[0] + point_radius,
+                    point[1] + point_radius,
+                ),
+                fill=color,
+            )
+
+        if save_path is not None and screenshot is not None:
+            screenshot.save(save_path, compress_level=DEFAULT_PNG_COMPRESS_LEVEL)
+        return screenshot
+
+    def get_annotation_dict(
+        self,
+        control: UIAWrapper,
+        sub_control_list: List[UIAWrapper],
+        annotation_type: str = "number",
+    ) -> Dict[str, UIAWrapper]:
+        """
+        Get the dictionary of the annotations.
+        :param control: The control item to capture.
+        :param sub_control_list: The list of the controls to annotate.
+        :param annotation_type: The type of the annotation.
+        :return: The dictionary of the annotations.
+        """
+
+        screenshot = self.screenshot_factory.create_screenshot("app_window", control)
+        screenshot = AnnotationDecorator(screenshot, sub_control_list, annotation_type)
+        return screenshot.get_annotation_dict()
+
+    def get_cropped_icons_dict(
+        self, control: UIAWrapper, annotation_dict: Dict[str, UIAWrapper]
+    ) -> Dict[str, Image.Image]:
+        """
+        Get the dictionary of the cropped icons.
+        :param control: The control item to capture.
+        :param sub_control_list: The list of the controls to annotate.
+        :param annotation_type: The type of the annotation.
+        :return: The dictionary of the cropped icons.
+        """
+
+        screenshot = self.screenshot_factory.create_screenshot("app_window", control)
+        screenshot = AnnotationDecorator(screenshot, sub_control_list=[])
+        return screenshot.get_cropped_icons_dict(annotation_dict)
+
+    @staticmethod
+    def concat_screenshots(
+        image1_path: str, image2_path: str, output_path: str
+    ) -> Image.Image:
+        """
+        Concatenate two images horizontally.
+        :param image1_path: The path of the first image.
+        :param image2_path: The path of the second image.
+        :param output_path: The path to save the concatenated image.
+        :return: The concatenated image.
+        """
+        # Open the images
+        if not os.path.exists(image1_path):
+            logger.warning(f"{image1_path} does not exist.")
+
+            return Image.new("RGB", (0, 0))
+
+        if not os.path.exists(image2_path):
+            logger.warning(f"{image2_path} does not exist.")
+
+            return Image.new("RGB", (0, 0))
+
+        image1 = Image.open(image1_path)
+        image2 = Image.open(image2_path)
+
+        # Ensure both images have the same height
+        min_height = min(image1.height, image2.height)
+        image1 = image1.crop((0, 0, image1.width, min_height))
+        image2 = image2.crop((0, 0, image2.width, min_height))
+
+        # Concatenate images horizontally
+        result = Image.new("RGB", (image1.width + image2.width, min_height))
+        result.paste(image1, (0, 0))
+        result.paste(image2, (image1.width, 0))
+
+        # Save the result
+        result.save(output_path, compress_level=DEFAULT_PNG_COMPRESS_LEVEL)
+
+        return result
+
+    @staticmethod
+    def load_image(image_path: str) -> Image.Image:
+        """
+        Load an image from the path.
+        :param image_path: The path of the image.
+        :return: The image.
+        """
+        return Image.open(image_path)
+
+    @staticmethod
+    def image_to_base64(image: Image.Image) -> str:
+        """
+        Convert image to base64 string.
+
+        :param image: The image to convert.
+        :return: The base64 string.
+        """
+        buffered = BytesIO()
+        image.save(buffered, format="PNG", optimize=True)
+
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    @staticmethod
+    def control_iou(control1: UIAWrapper, control2: UIAWrapper) -> float:
+        """
+        Calculate the IOU overlap between two controls.
+        :param control1: The first control.
+        :param control2: The second control.
+        :return: The IOU overlap.
+        """
+        rect1 = control1.rectangle()
+        rect2 = control2.rectangle()
+
+        left = max(rect1.left, rect2.left)
+        top = max(rect1.top, rect2.top)
+        right = min(rect1.right, rect2.right)
+        bottom = min(rect1.bottom, rect2.bottom)
+
+        intersection_area = max(0, right - left) * max(0, bottom - top)
+        area1 = (rect1.right - rect1.left) * (rect1.bottom - rect1.top)
+        area2 = (rect2.right - rect2.left) * (rect2.bottom - rect2.top)
+
+        iou = intersection_area / (area1 + area2 - intersection_area)
+
+        return iou
+
+    @staticmethod
+    def merge_control_list(
+        main_control_list: List[UIAWrapper],
+        additional_control_list: List[UIAWrapper],
+        iou_overlap_threshold: float = 0.1,
+    ) -> List[UIAWrapper]:
+        """
+        Merge two control lists by removing the overlapping controls in the additional control list.
+        :param main_control_list: The main control list. All controls in this list will be kept.
+        :param additional_control_list: The additional control list. The overlapping controls in this list will be removed.
+        :param iou_overlap_threshold: The threshold of the IOU overlap to consider two controls as overlapping.
+        :return: The merged control list.
+        """
+        merged_control_list = main_control_list.copy()
+
+        for additional_control in additional_control_list:
+            is_overlapping = False
+            for main_control in main_control_list:
+                if (
+                    PhotographerFacade.control_iou(additional_control, main_control)
+                    > iou_overlap_threshold
+                ):
+                    is_overlapping = True
+                    break
+
+            if not is_overlapping:
+                merged_control_list.append(additional_control)
+
+        return merged_control_list
+
+    @staticmethod
+    def target_info_iou(target1: "TargetInfo", target2: "TargetInfo") -> float:
+        """
+        Calculate the IOU overlap between two TargetInfo objects.
+        :param target1: The first target.
+        :param target2: The second target.
+        :return: The IOU overlap.
+        """
+        # Check if both targets have valid rect information
+        if not target1.rect or not target2.rect:
+            return 0.0
+
+        # TargetInfo rect format: [left, top, right, bottom] (absolute coordinates)
+        rect1_left, rect1_top, rect1_right, rect1_bottom = target1.rect
+        rect2_left, rect2_top, rect2_right, rect2_bottom = target2.rect
+
+        # Calculate width and height
+        rect1_width = rect1_right - rect1_left
+        rect1_height = rect1_bottom - rect1_top
+        rect2_width = rect2_right - rect2_left
+        rect2_height = rect2_bottom - rect2_top
+
+        # Calculate intersection
+        left = max(rect1_left, rect2_left)
+        top = max(rect1_top, rect2_top)
+        right = min(rect1_right, rect2_right)
+        bottom = min(rect1_bottom, rect2_bottom)
+
+        intersection_area = max(0, right - left) * max(0, bottom - top)
+        area1 = rect1_width * rect1_height
+        area2 = rect2_width * rect2_height
+
+        # Avoid division by zero
+        union_area = area1 + area2 - intersection_area
+        if union_area == 0:
+            return 0.0
+
+        iou = intersection_area / union_area
+        return iou
+
+    @staticmethod
+    def merge_target_info_list(
+        main_target_list: List["TargetInfo"],
+        additional_target_list: List["TargetInfo"],
+        iou_overlap_threshold: float = 0.1,
+    ) -> List["TargetInfo"]:
+        """
+        Merge two TargetInfo lists by removing the overlapping targets in the additional target list.
+        :param main_target_list: The main target list. All targets in this list will be kept.
+        :param additional_target_list: The additional target list. The overlapping targets in this list will be removed.
+        :param iou_overlap_threshold: The threshold of the IOU overlap to consider two targets as overlapping.
+        :return: The merged target list.
+        """
+        merged_target_list = main_target_list.copy()
+
+        for additional_target in additional_target_list:
+            is_overlapping = False
+            for main_target in main_target_list:
+                if (
+                    PhotographerFacade.target_info_iou(additional_target, main_target)
+                    > iou_overlap_threshold
+                ):
+                    is_overlapping = True
+                    break
+
+            if not is_overlapping:
+                merged_target_list.append(additional_target)
+
+        return merged_target_list
+
+    @classmethod
+    def encode_image(cls, image: Image.Image, mime_type: Optional[str] = None) -> str:
+        """
+        Encode an image to base64 string.
+        :param image: The image to encode.
+        :param mime_type: The mime type of the image.
+        :return: The base64 string.
+        """
+
+        if image is None:
+            return cls._empty_image_string
+
+        try:
+            buffered = BytesIO()
+
+            # Ensure image is in a valid mode for PNG saving
+            if image.mode not in ["RGB", "RGBA", "L", "P"]:
+                # Convert to RGB if mode is not supported
+                image = image.convert("RGB")
+
+            # Handle different image modes for better compatibility
+            if mime_type and "jpeg" in mime_type.lower():
+                # For JPEG, convert RGBA to RGB (remove alpha channel)
+                if image.mode in ["RGBA", "LA"]:
+                    # Create a white background
+                    background = Image.new("RGB", image.size, (255, 255, 255))
+                    if image.mode == "RGBA":
+                        background.paste(
+                            image, mask=image.split()[-1]
+                        )  # Use alpha channel as mask
+                    else:
+                        background.paste(image)
+                    image = background
+                image.save(buffered, format="JPEG", quality=95, optimize=True)
+                if mime_type is None:
+                    mime_type = "image/jpeg"
+            else:
+                # Default to PNG
+                image.save(buffered, format="PNG", optimize=True)
+                if mime_type is None:
+                    mime_type = "image/png"
+
+            encoded_image = base64.b64encode(buffered.getvalue()).decode("ascii")
+            image_url = f"data:{mime_type};base64," + encoded_image
+            return image_url
+
+        except Exception as e:
+            logger.error(f"Error encoding image: {e}")
+            # Fallback: try with a simple conversion
+            try:
+                # Convert to RGB and try again
+                rgb_image = image.convert("RGB")
+                buffered = BytesIO()
+                rgb_image.save(buffered, format="PNG")
+                encoded_image = base64.b64encode(buffered.getvalue()).decode("ascii")
+                return f"data:image/png;base64,{encoded_image}"
+            except Exception as fallback_error:
+                logger.error(f"Fallback encoding also failed: {fallback_error}")
+                return cls._empty_image_string
+
+    @classmethod
+    def encode_image_from_path(
+        cls, image_path: str, mime_type: Optional[str] = None
+    ) -> str:
+        """
+        Encode an image file to base64 string.
+        :param image_path: The path of the image file.
+        :param mime_type: The mime type of the image.
+        :return: The base64 string.
+        """
+
+        # If image path not exist, return an empty image string
+        if not os.path.exists(image_path):
+            logger.warning(f"{image_path} does not exist.")
+            return cls._empty_image_string
+
+        try:
+            # Try to load and validate the image first
+            image = Image.open(image_path)
+            # Verify the image by accessing its properties
+            _ = image.size
+            _ = image.format
+
+            # Use the improved encode_image method
+            return cls.encode_image(image, mime_type)
+
+        except Exception as image_error:
+            logger.warning(f"Error loading image {image_path}: {image_error}")
+
+            # Fallback: try direct file encoding (for valid image files that PIL can't handle)
+            try:
+                file_name = os.path.basename(image_path)
+                if mime_type is None:
+                    mime_type = mimetypes.guess_type(file_name)[0]
+
+                with open(image_path, "rb") as image_file:
+                    encoded_image = base64.b64encode(image_file.read()).decode("ascii")
+
+                if mime_type is None or not mime_type.startswith("image/"):
+                    logger.warning(
+                        "mime_type is not specified or not an image mime type. Defaulting to png."
+                    )
+                    mime_type = "image/png"
+
+                image_url = f"data:{mime_type};base64," + encoded_image
+                return image_url
+
+            except Exception as fallback_error:
+                logger.error(
+                    f"Fallback encoding failed for {image_path}: {fallback_error}"
+                )
+                return cls._empty_image_string
+
+    def capture_app_window_screenshot_with_target_list(
+        self,
+        application_window_info: "TargetInfo",
+        target_list: List["TargetInfo"],
+        color_diff: bool = True,
+        color_default: str = "#FFF68F",
+        save_path: Optional[str] = None,
+        path: Optional[str] = None,
+        highlight_bbox: bool = False,
+    ) -> Image.Image:
+        """
+        Capture the control screenshot with annotations using TargetRegistry.
+        This method avoids the need to convert TargetInfo to UIAWrapper.
+
+        :param target_registry: The target registry containing control information.
+        :param annotation_type: The type of the annotation.
+        :param color_diff: Whether to use different colors for different control types.
+        :param color_default: The default color of the annotation.
+        :param save_path: The path to save the screenshot.
+        :param path: The path to the background image.
+        :param highlight_bbox: Whether to highlight control bounding boxes with semi-transparent overlays.
+        :return: The screenshot with annotations.
+        """
+
+        # Create screenshot and annotate directly with target info
+        screenshot = TargetAnnotationDecorator(
+            screenshot=None,
+            color_diff=color_diff,
+            color_default=color_default,
+            application_window_info=application_window_info,
+        )
+        return screenshot.capture_with_target_info(
+            target_list, save_path, path, highlight_bbox
+        )

@@ -1,0 +1,61 @@
+schema_version: 1
+
+sources:
+  webarena_verified:
+    repository: https://github.com/ServiceNow/webarena-verified.git
+    revision: 6473f72db5dcefc97b5725b59e734504edc28a21
+    directory: webarena-verified
+    conda_env: omniact-up-webarena
+    license: Apache-2.0
+    runtime: conda_docker
+
+  real:
+    repository: https://github.com/agi-inc/agisdk.git
+    revision: 97a245dcbccd3e1cf4d5ee00d5b1707942258518
+    directory: agisdk
+    conda_env: omniact-up-real
+    license: Apache-2.0
+    runtime: conda_web_clone
+
+  visualwebarena:
+    repository: https://github.com/web-arena-x/visualwebarena.git
+    revision: 89f5af29305c3d1e9f97ce4421462060a70c9a03
+    directory: visualwebarena
+    license: MIT
+    runtime: conda_docker
+
+  webchorearena:
+    repository: https://github.com/WebChoreArena/WebChoreArena.git
+    revision: 542abc538fd9558362119714989166904d82f5f4
+    directory: WebChoreArena
+    conda_env: webchorearena
+    license: Apache-2.0
+    runtime: conda_docker
+
+  windows_agent_arena:
+    repository: https://github.com/microsoft/WindowsAgentArena.git
+    revision: 6d39ed88c545a0d40a7a02e39b928e278df7332b
+    directory: WindowsAgentArena
+    license: MIT
+    runtime: windows_vm
+
+  osworld:
+    repository: https://github.com/xlang-ai/OSWorld.git
+    revision: fc31a9049664292fcb35d6e501ee1dc839f2cf6d
+    directory: OSWorld
+    license: Apache-2.0
+    runtime: reference_only
+
+  windowsworld:
+    repository: https://github.com/HITsz-TMG/WindowsWorld.git
+    revision: fbccd464f94fec9e284e139f97bf96d0b192f580
+    directory: WindowsWorld
+    license: Apache-2.0
+    runtime: windows_vm
+
+  the_agent_company:
+    repository: https://github.com/TheAgentCompany/TheAgentCompany.git
+    revision: 98b68ef82a47690c316f42fddb05baafaab56851
+    directory: TheAgentCompany
+    license: MIT
+    runtime: docker_compose
