@@ -1,3 +1,5 @@
+> **项目来源：** 本分支基于 [OpenCyvis](https://github.com/opencyvis/opencyvis-phone) 项目开发，原始项目由 OpenCyvis 贡献者开发。本分支托管于 [Iwtbs27/collab-agent](https://github.com/Iwtbs27/collab-agent/tree/feat/gui-context-optimization)，用于后续 GUI Agent 上下文、感知与定位的优化和测试，保留原项目的 [Apache 2.0 许可证](LICENSE)、[版权及第三方声明](NOTICE)。下方文档为原项目介绍，本分支的研究与改动说明见 [docs](docs/)。
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="github-banner-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="github-banner-light.png">

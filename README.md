@@ -1,3 +1,5 @@
+> **Project origin:** This branch is based on [OpenCyvis](https://github.com/opencyvis/opencyvis-phone), originally developed by the OpenCyvis contributors. It is maintained in [Iwtbs27/collab-agent](https://github.com/Iwtbs27/collab-agent/tree/feat/gui-context-optimization) for ongoing GUI Agent context, perception, and grounding improvements and testing. The original [Apache 2.0 license](LICENSE), [copyright and third-party notices](NOTICE) are retained. The documentation below describes the upstream project; changes specific to this branch are documented in [docs](docs/).
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="github-banner-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="github-banner-light.png">
