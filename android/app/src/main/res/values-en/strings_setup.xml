@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_need_wifi_title">Connect to WiFi first</string>
+    <string name="setup_need_wifi_desc">Wireless debugging pairing requires a WiFi connection.\nPlease connect to WiFi and try again.</string>
+    <string name="setup_unsupported_title">Unsupported system version</string>
+    <string name="setup_unsupported_desc">Wireless pairing requires Android 11 or higher.\nYour device is running Android %1$d.</string>
+
+    <string name="setup_dev_options_title">Step 1: Enable Developer Options</string>
+    <string name="setup_dev_options_desc">Open Settings → About Phone → Tap \"Build Number\" %1$d times\n\nYou\'ll see \"You are now a developer!\"</string>
+    <string name="setup_dev_options_btn">Open Settings</string>
+    <string name="setup_dev_options_skip">Already enabled →</string>
+    <string name="setup_dev_options_reassure">You may see a security warning — this is normal, tap OK to continue.</string>
+
+    <string name="setup_wireless_title">Step 2: Enable Wireless Debugging</string>
+    <string name="setup_wireless_desc">Open Developer Options → Enable \"Wireless Debugging\"\nThen tap \"Pair device with pairing code\"</string>
+    <string name="setup_wireless_btn">Open Wireless Debugging</string>
+    <string name="setup_wireless_notif_searching">Searching for wireless debugging service…</string>
+    <string name="setup_wireless_notif_found">Found! Tap \"Pair device with pairing code\"</string>
+    <string name="setup_wireless_notif_enter_title">Tap \"Wireless debugging\"</string>
+    <string name="setup_wireless_notif_enter_desc">In Developer Options, scroll down and tap \"Wireless debugging\" to enter</string>
+    <string name="setup_wireless_notif_guide_title">Tap \"Pair device with pairing code\"</string>
+    <string name="setup_wireless_notif_guide_desc">In Wireless Debugging settings, tap \"Pair device with pairing code\", then enter the %1$d-digit code in OpenCyvis</string>
+
+    <string name="setup_pair_title">Step 3: Enter Pairing Code</string>
+    <string name="setup_pair_desc">1. Tap \"Open Wireless Debugging\" below\n2. Tap \"Wireless debugging\" to enter its settings\n3. Tap \"Pair device with pairing code\"\n4. Enter the %1$d-digit code shown in the dialog below</string>
+    <string name="setup_pair_notif_title">Get pairing code</string>
+    <string name="setup_pair_notif_desc">Tap \"Wireless debugging\" → \"Pair device with pairing code\", then enter the %1$d-digit code</string>
+    <string name="setup_pair_hint">%1$d-digit code</string>
+    <string name="setup_pair_btn">Pair</string>
+    <!-- Notification action label: clearer than just "Pair" so users pulling down the shade know where to type -->
+    <string name="setup_notif_input_btn">Enter pairing code</string>
+
+    <string name="setup_error_wrong_code">Wrong code. Please try again.</string>
+    <string name="setup_error_code_expired">Code expired. Please get a new one from Settings.</string>
+    <string name="setup_error_connect_fail">Paired but connection failed. Retrying…</string>
+    <string name="setup_error_mdns_timeout">Could not find wireless debugging service.\nMake sure WiFi is on and Wireless Debugging is enabled.</string>
+    <string name="setup_error_wifi_lost">WiFi disconnected. Please reconnect.</string>
+
+    <string name="setup_success_title">Paired successfully</string>
+    <string name="setup_success_desc">Device connected. Ready to use.</string>
+    <string name="setup_success_notif">Paired! Tap to return to OpenCyvis</string>
+    <string name="setup_done_btn">Done</string>
+
+    <string name="setup_miui_sim_warning">Xiaomi devices may require a SIM card and Mi Account login to enable USB debugging security.</string>
+    <string name="setup_miui_notif_style">Please switch notification style to \"Android\" to use notification input.</string>
+    <string name="setup_coloros_auto_close">Note: ColorOS may auto-disable Developer Options after restart. Re-pairing may be needed.</string>
+    <string name="setup_vivo_battery">Please disable battery optimization to keep the background service running.</string>
+
+    <string name="setup_notif_channel_name">Setup Guide</string>
+    <string name="setup_notif_channel_desc">ADB wireless debugging pairing guidance</string>
+
+    <string name="setup_reconnecting">Reconnecting…</string>
+
+    <!-- Split-screen pairing context -->
+    <string name="setup_pair_split_label">Enter pairing code</string>
+    <string name="setup_pair_split_label_with_port">Enter pairing code (port %1$d)</string>
+    <string name="setup_pair_split_hint">Tap \"Pair device with pairing code\" in the Wireless Debugging settings on the other side</string>
+    <string name="setup_action_retry">Retry</string>
+    <string name="setup_action_manual_input">Manual input</string>
+    <string name="setup_action_done">I\'m done</string>
+    <string name="setup_action_stop">Stop</string>
+    <string name="setup_open_settings_manual">Please open Settings → System → Developer options → Wireless debugging manually</string>
+</resources>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Setup state detection -->
+    <string name="setup_need_wifi_title">请先连接 WiFi</string>
+    <string name="setup_need_wifi_desc">无线调试配对需要 WiFi 网络连接。\n请连接 WiFi 后重试。</string>
+    <string name="setup_unsupported_title">系统版本不支持</string>
+    <string name="setup_unsupported_desc">无线配对仅支持 Android 11 及以上系统。\n您的设备为 Android %1$d。</string>
+
+    <!-- Step 1: Developer Options -->
+    <string name="setup_dev_options_title">第 1 步：开启开发者选项</string>
+    <string name="setup_dev_options_desc">打开「设置」→「关于手机」→ 连续点击「版本号」%1$d 次\n\n系统会提示「您现在处于开发者模式」</string>
+    <string name="setup_dev_options_btn">打开系统设置</string>
+    <string name="setup_dev_options_skip">已开启，下一步 →</string>
+    <string name="setup_dev_options_reassure">您可能会看到系统安全警告，这是正常现象，请放心点击确认。</string>
+
+    <!-- Step 2: Wireless Debugging -->
+    <string name="setup_wireless_title">第 2 步：开启无线调试</string>
+    <string name="setup_wireless_desc">打开「开发者选项」→ 开启「无线调试」开关\n然后点击「使用配对码配对设备」</string>
+    <string name="setup_wireless_btn">打开无线调试</string>
+    <string name="setup_wireless_notif_searching">正在搜索无线调试服务…</string>
+    <string name="setup_wireless_notif_found">已发现！请点击「使用配对码配对设备」</string>
+    <string name="setup_wireless_notif_enter_title">点击「无线调试」</string>
+    <string name="setup_wireless_notif_enter_desc">在开发者选项中，向下滑动找到「无线调试」并点击进入</string>
+    <string name="setup_wireless_notif_guide_title">请点击「使用配对码配对设备」</string>
+    <string name="setup_wireless_notif_guide_desc">在无线调试页面中，点击「使用配对码配对设备」，将弹窗中的 %1$d 位配对码输入到 OpenCyvis</string>
+
+    <!-- Step 3: Pairing code -->
+    <string name="setup_pair_title">第 3 步：输入配对码</string>
+    <string name="setup_pair_desc">1. 点击下方「打开无线调试」\n2. 点击「无线调试」进入其设置页\n3. 点击「使用配对码配对设备」\n4. 将弹窗中显示的 %1$d 位配对码输入到下方</string>
+    <string name="setup_pair_notif_title">获取配对码</string>
+    <string name="setup_pair_notif_desc">点击「无线调试」→「使用配对码配对设备」，然后输入 %1$d 位配对码</string>
+    <string name="setup_pair_hint">%1$d 位配对码</string>
+    <string name="setup_pair_btn">配对</string>
+    <!-- Notification action label: clearer than just "配对" so users pulling down the shade know where to type -->
+    <string name="setup_notif_input_btn">点此输入配对码</string>
+
+    <!-- Errors -->
+    <string name="setup_error_wrong_code">配对码不正确，请重新输入</string>
+    <string name="setup_error_code_expired">配对码已失效，请在系统设置中重新获取</string>
+    <string name="setup_error_connect_fail">配对成功但连接失败，正在重试…</string>
+    <string name="setup_error_mdns_timeout">未能自动发现无线调试服务。\n请确认 WiFi 已连接且无线调试已开启。</string>
+    <string name="setup_error_wifi_lost">WiFi 已断开，请重新连接</string>
+
+    <!-- Success -->
+    <string name="setup_success_title">配对成功</string>
+    <string name="setup_success_desc">设备已连接，可以开始使用。</string>
+    <string name="setup_success_notif">配对成功！点击返回 OpenCyvis</string>
+    <string name="setup_done_btn">完成</string>
+
+    <!-- OEM specific -->
+    <string name="setup_miui_sim_warning">小米设备可能需要插入 SIM 卡并登录小米账号才能开启 USB 调试安全设置。</string>
+    <string name="setup_miui_notif_style">请将通知样式切换为「Android」样式以使用通知栏输入功能。</string>
+    <string name="setup_coloros_auto_close">提示：ColorOS 设备的开发者选项可能在重启后自动关闭，届时需重新配对。</string>
+    <string name="setup_vivo_battery">请关闭电池优化以确保后台服务正常运行。</string>
+
+    <!-- Notification channel -->
+    <string name="setup_notif_channel_name">设置引导</string>
+    <string name="setup_notif_channel_desc">ADB 无线调试配对引导通知</string>
+
+    <string name="setup_reconnecting">正在尝试重新连接…</string>
+
+    <!-- Split-screen pairing context -->
+    <string name="setup_pair_split_label">输入配对码</string>
+    <string name="setup_pair_split_label_with_port">输入配对码（端口 %1$d）</string>
+    <string name="setup_pair_split_hint">在另一侧的「无线调试」设置中，点击「使用配对码配对设备」获取配对码</string>
+
+    <!-- Actions -->
+    <string name="setup_action_retry">重试</string>
+    <string name="setup_action_manual_input">手动输入</string>
+    <string name="setup_action_done">我已完成</string>
+    <string name="setup_action_stop">停止</string>
+    <string name="setup_open_settings_manual">请手动进入：设置 → 系统 → 开发者选项 → 无线调试</string>
+</resources>

@@ -1,0 +1,42 @@
+OpenCyvis
+Copyright 2026 OpenCyvis Contributors
+
+This product includes software and models from third parties:
+
+========================================================================
+Sherpa-ONNX (Speech Recognition)
+========================================================================
+License: Apache License 2.0
+Source: https://github.com/k2-fsa/sherpa-onnx
+
+This product includes Sherpa-ONNX ASR models (zh_en_small_int8) for
+on-device speech recognition. The models are licensed under Apache 2.0.
+
+Model files included in android/app/src/main/assets/asr/zh_en_small_int8/:
+- encoder-epoch-99-avg-1.int8.onnx
+- joiner-epoch-99-avg-1.int8.onnx
+- decoder-epoch-99-avg-1.onnx
+- bpe.model
+- tokens.txt
+
+========================================================================
+Android Open Source Project (AOSP)
+========================================================================
+License: Apache License 2.0
+
+This product includes hidden API interface stubs derived from AOSP
+(android/app/src/main/java/android/app/) for accessing system-level
+APIs not part of the public Android SDK.
+
+========================================================================
+Third-party Libraries (Android)
+========================================================================
+
+- AndroidX (Apache 2.0)
+- Kotlin Coroutines (Apache 2.0)
+- OkHttp (Apache 2.0)
+- Room (Apache 2.0)
+- Material Design (Apache 2.0)
+- ONNX Runtime (MIT License)
+- Sherpa-ONNX Android SDK (Apache 2.0)
+

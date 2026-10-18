@@ -1,0 +1,1091 @@
+# OpenCyvis UI Test Scenarios
+#
+# Usage with test-ui agent:
+#   @test-ui run open_settings          — run single scenario
+#   @test-ui run all                    — run all scenarios
+#   @test-ui run dial_66666,call_jimmy  — run multiple
+#
+# Scenario fields:
+#   category:    smoke (deterministic, hard-gate CI) | llm (soft-gate CI) | nightly (unstable external deps)
+#   name:        unique identifier
+#   instruction: text sent to agent via `dumpsys opencyvis start`
+#   timeout:     max wait time in seconds for agent to complete
+#   max_steps:   (optional) expected max step count
+#   answers:     (optional) responses triggered by logcat patterns
+#     - wait_for: logcat pattern to wait for before acting
+#       answer:   text to send via `dumpsys opencyvis inject ask_user_response`
+#       delay:    (optional) seconds to wait after pattern matched, default 1
+#     - wait_for: logcat pattern
+#       command:  dumpsys subcommand (e.g. "debug complete_handoff")
+#       delay:    (optional) seconds
+#   pre_steps:   (optional) ADB commands to run before instruction
+#   verify:      list of verification checks (all must pass)
+#     - logcat:         grep logcat for this pattern
+#     - logcat_absent:  verify this pattern does NOT appear in logcat
+#     - chat_contains:  screenshot + uiautomator, verify chat has this text
+#     - mirror:         switch to mirror mode, screenshot, visually verify description
+#     - ui_element:     verify element with this resource-id exists in uiautomator dump
+#     - ui_text:        verify element with this text exists in uiautomator dump
+#     - vd_exists:      verify virtual display is alive (true/false)
+#     - dumpsys_contains: run `dumpsys opencyvis` and verify output contains this string
+#     - dumpsys_absent:   run `dumpsys opencyvis` and verify output does NOT contain this string
+#
+# Step DSL (pre_steps / post_steps):
+#     tap_ui:<resource_id>     — find element by resource-id, tap center
+#     tap_text:<text>          — find element by text content, tap center
+#     sleep:<seconds>          — wait N seconds
+#     adb shell <command>      — run raw ADB shell command
+
+# ── Basic scenarios ──────────────────────────────────────────────────────────
+
+- name: open_settings
+  category: llm
+  instruction: "打开系统设置"
+  timeout: 20
+  verify:
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+    - vd_exists: true
+    - mirror: "系统设置页面，可以看到 Network、Display 等设置项"
+
+- name: open_camera
+  category: llm
+  instruction: "打开相机"
+  timeout: 20
+  verify:
+    - logcat: "Task completed"
+    - logcat: "action_type=open_app"
+    - chat_contains: "✅"
+    - mirror: "相机应用已打开，可以看到取景器或相机界面"
+
+- name: open_contacts
+  category: llm
+  instruction: "打开联系人"
+  timeout: 20
+  verify:
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+    - mirror: "联系人应用已打开"
+
+# ── Dial / Phone scenarios ───────────────────────────────────────────────────
+
+- name: dial_66666
+  category: llm
+  instruction: "拨打66666"
+  timeout: 45
+  max_steps: 10
+  verify:
+    - logcat: "Task completed"
+    - logcat: "action_type=type_text"
+    - chat_contains: "✅"
+    - mirror: "拨号盘或通话界面显示 66666"
+
+- name: dial_10086
+  category: llm
+  instruction: "拨打10086"
+  timeout: 45
+  max_steps: 10
+  verify:
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+    - mirror: "拨号盘或通话界面显示 10086"
+
+# ── ask_user flow ────────────────────────────────────────────────────────────
+
+- name: call_jimmy
+  category: llm
+  instruction: "call jimmy"
+  timeout: 90
+  max_steps: 15
+  answers:
+    - wait_for: "ask_user"
+      answer: "66666"
+      delay: 2
+  verify:
+    - logcat: "action_type=ask_user"
+    - logcat: "WaitingForUser"
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+
+- name: send_message_to_test
+  category: llm
+  instruction: "给测试发一条短信说你好"
+  timeout: 90
+  max_steps: 15
+  answers:
+    - wait_for: "ask_user"
+      answer: "13800138000"
+      delay: 2
+  verify:
+    - logcat: "action_type=ask_user"
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+
+# ── Mirror & UI state scenarios ──────────────────────────────────────────────
+
+- name: mirror_after_task
+  category: llm
+  instruction: "打开系统设置"
+  timeout: 20
+  verify:
+    - logcat: "Task completed"
+    - logcat: "keeping virtual display"
+    - vd_exists: true
+    - ui_element: "btn_view_operation"
+    - ui_element: "btn_stop"
+    - mirror: "系统设置页面全屏显示，无黑边"
+
+- name: view_then_back
+  category: llm
+  instruction: "打开系统设置"
+  timeout: 20
+  verify:
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+    # After verifying task completion, agent should:
+    # 1. Tap View → verify mirror shows settings
+    # 2. Tap Back → verify returns to chat
+    - mirror: "系统设置页面"
+    - ui_element: "recycler_chat"
+
+# ── Takeover input scenarios ────────────────────────────────────────────────
+
+# This scenario tests the takeover touch forwarding flow:
+#   agent opens contacts → VIEW → TAKEOVER → tap search icon via touch forwarding
+- name: takeover_touch_input
+  category: llm
+  instruction: "打开联系人"
+  timeout: 30
+  post_steps:
+    # 1. Tap VIEW button (find via uiautomator, resource-id btn_view_operation)
+    - "tap_ui:btn_view_operation"
+    - "sleep:2"
+    # 2. Tap TAKEOVER button (find via uiautomator, resource-id btn_takeover)
+    - "tap_ui:btn_takeover"
+    - "sleep:1"
+    # 3. Tap search icon in Contacts (top-right of VD, ~x=1020 y=115)
+    - "adb shell input tap 1020 115"
+    - "sleep:1"
+  verify:
+    - logcat: "Task completed"
+    - logcat: "Set DISPLAY_IME_POLICY_LOCAL"
+    - logcat: "Takeover mode: true"
+    - logcat: "Injected touch to display"
+    - vd_exists: true
+
+# ── App + search scenarios (tests SSE streaming with quoted strings) ─────────
+
+- name: browser_search_price
+  category: nightly
+  instruction: "open browser and search for the price of iPhone 16 Pro, tell me the result"
+  timeout: 120
+  max_steps: 20
+  pre_steps:
+    - "adb shell am force-stop org.chromium.webview_shell"
+  verify:
+    - logcat: "Task completed"
+    - logcat_absent: "PatternSyntaxException"
+    - logcat_absent: "Unterminated object"
+    - chat_contains: "✅"
+
+# ── Note / memory scenarios ──────────────────────────────────────────────────
+
+- name: note_action
+  category: llm
+  instruction: "先用 note 动作记录一条笔记 '测试记录: note功能正常'，然后 finish"
+  timeout: 30
+  max_steps: 5
+  verify:
+    - logcat: "note recorded"
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+
+- name: note_side_effect
+  category: llm
+  instruction: "打开电话应用，在执行 open_app 时同时用 note 参数记录 '电话应用: 已打开'，然后 finish"
+  timeout: 30
+  max_steps: 5
+  verify:
+    - logcat: "note recorded"
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+
+# ── Error / edge case scenarios ──────────────────────────────────────────────
+
+- name: impossible_task
+  category: smoke
+  instruction: "这是一个不可能的测试任务，请直接用 fail 动作回复，原因是：无法执行此操作"
+  timeout: 30
+  mock_responses:
+    - tool_call:
+        thought: "这是一个不可能完成的任务"
+        action_type: "fail"
+        reason: "无法执行此操作"
+  verify:
+    - logcat: "action_type=fail"
+    - logcat: "Task completed"
+
+- name: app_not_found_ask_user
+  category: llm
+  instruction: "打开 Xyloquartz 应用"
+  timeout: 45
+  max_steps: 5
+  verify:
+    - logcat: "action failed"
+    - logcat: "action_type=ask_user"
+    - logcat: "Could not find app"
+    - chat_contains: "Xyloquartz"
+    - ui_element: "edit_input"
+
+# ── Chat history scenarios ───────────────────────────────────────────────────
+
+- name: history_after_task
+  category: llm
+  instruction: "打开系统设置"
+  timeout: 30
+  pre_steps:
+    - "adb shell am force-stop ai.opencyvis"
+  verify:
+    - logcat: "Task completed"
+    - chat_contains: "✅"
+    # After task completes, stop agent to return to idle, then verify history UI
+    - ui_element: "btn_history"
+
+- name: history_list_open
+  category: llm
+  instruction: "打开系统设置"
+  timeout: 30
+  pre_steps:
+    - "adb shell am force-stop ai.opencyvis"
+  post_steps:
+    # Stop agent first so we go back to idle
+    - "tap_ui:btn_stop"
+    - "sleep:2"
+    # Tap history button
+    - "tap_ui:btn_history"
+    - "sleep:2"
+  verify:
+    - logcat: "Task completed"
+    - ui_element: "recycler_conversations"
+    - ui_text: "Conversation History"
+    - ui_text: "打开系统设置"
+
+# ── Settings persistence scenarios ──────────────────────────────────────────
+
+- name: settings_custom_model_persists
+  category: smoke
+  # Regression test: spinner onItemSelected fired during setSelection() in
+  # onCreate() and reset custom model names to provider defaults.
+  # Fixed by spinnerReady flag; this test ensures the fix holds.
+  #
+  # This test does NOT need the agent — it only checks Settings UI persistence.
+  # We use mock to let the instruction complete quickly, then set the custom
+  # model in post_steps (after mock teardown restores config).
+  instruction: "直接用 finish 动作完成"
+  timeout: 15
+  mock_responses:
+    - tool_call:
+        thought: "直接完成"
+        action_type: "finish"
+        summary: "已完成"
+  post_steps:
+    - "adb shell am force-stop ai.opencyvis"
+    - "adb shell input keyevent HOME"
+    - "sleep:1"
+    - "adb shell am start -a android.intent.action.VIEW -d 'opencyvis://config?provider=openai&model=spinnertest-custom-xyz&base_url=https%3A%2F%2Fapi.example.com%2Fv1&api_key=testkey&max_steps=20' -p ai.opencyvis"
+    - "sleep:2"
+    - "adb shell am force-stop ai.opencyvis"
+    - "sleep:1"
+    - "adb shell am start -n ai.opencyvis/.SettingsActivity"
+    - "sleep:3"
+  verify:
+    - logcat: "Task completed"
+    - ui_text: "spinnertest-custom-xyz"
+
+# ── Error / edge case scenarios ──────────────────────────────────────────────
+
+- name: max_steps_reached
+  category: smoke
+  instruction: "在设置里找到关于手机页面并截图发给我"
+  timeout: 30
+  max_steps: 3
+  mock_responses:
+    - tool_call:
+        thought: "打开设置"
+        action_type: "open_app"
+        app_name: "设置"
+    - tool_call:
+        thought: "向下滑动查找关于手机"
+        action_type: "swipe"
+        startX: 540
+        startY: 1400
+        endX: 540
+        endY: 400
+    - tool_call:
+        thought: "继续向下滑动"
+        action_type: "swipe"
+        startX: 540
+        startY: 1400
+        endX: 540
+        endY: 400
+    - tool_call:
+        thought: "还需要继续找"
+        action_type: "swipe"
+        startX: 540
+        startY: 1400
+        endX: 540
+        endY: 400
+  verify:
+    - logcat: "max_steps"
+
+# ── Service lifecycle scenarios (migrated from instrumented tests) ────────────
+
+- name: service_starts_on_broadcast
+  category: smoke
+  # Migrated from AgentServiceInstrumentedTest.testBroadcastStartsAgent
+  instruction: "直接用 finish 动作完成"
+  timeout: 15
+  mock_responses:
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+    - "adb shell am force-stop ai.opencyvis"
+    - "sleep:1"
+  verify:
+    - dumpsys_contains: "service_alive\":true"
+    - logcat: "Task completed"
+
+- name: service_stops_on_command
+  category: smoke
+  # Migrated from AgentServiceInstrumentedTest.testStopBroadcastStopsAgent
+  instruction: "直接用 finish 动作完成"
+  timeout: 15
+  mock_responses:
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+    - "adb shell am force-stop ai.opencyvis"
+    - "sleep:1"
+  post_steps:
+    - "adb shell dumpsys opencyvis debug stop"
+    - "sleep:2"
+  verify:
+    - logcat: "Task completed"
+    - dumpsys_contains: "engine_state\":\"Idle"
+
+- name: service_not_running_initially
+  category: smoke
+  # Migrated from AgentServiceInstrumentedTest.testServiceNotRunningInitially
+  instruction: "直接用 finish 动作完成"
+  timeout: 15
+  mock_responses:
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+    - "adb shell am force-stop ai.opencyvis"
+    - "sleep:1"
+  verify:
+    - logcat: "AgentService created"
+    - dumpsys_contains: "service_alive\":true"
+
+# ── Mock LLM Smoke Scenarios ────────────────────────────────────────────────
+# These scenarios use a host-side mock HTTP server instead of a real LLM API.
+# The runner detects `mock_responses` and automatically:
+#   1. Starts a mock server on host
+#   2. Configures app via deeplink to point to mock
+#   3. Runs the scenario
+#   4. Restores original config
+#
+# mock_responses format:
+#   - tool_call: {thought, action_type, ...action params}
+#   - error: {status, body}  (for testing retry logic)
+
+- name: open_settings_mock
+  category: smoke
+  instruction: "打开设置"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "用户要打开设置应用"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "设置应用已打开，任务完成"
+        action_type: finish
+        summary: "已为您打开设置"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=open_app"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: agent_finish_mock
+  category: smoke
+  instruction: "你好"
+  timeout: 15
+  mock_responses:
+    - tool_call:
+        thought: "用户只是在打招呼，直接回复"
+        action_type: finish
+        summary: "你好！有什么可以帮你的吗？"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=finish"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: error_retry_mock
+  category: smoke
+  instruction: "打开相机"
+  timeout: 30
+  mock_responses:
+    - error:
+        status: 500
+        body: '{"error":{"message":"upstream failure","type":"server_error"}}'
+    - tool_call:
+        thought: "打开相机应用"
+        action_type: open_app
+        app_name: "相机"
+    - tool_call:
+        thought: "相机已打开，任务完成"
+        action_type: finish
+        summary: "已打开相机"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=open_app"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: multi_step_mock
+  category: smoke
+  instruction: "帮我打开设置然后返回桌面"
+  timeout: 25
+  mock_responses:
+    - tool_call:
+        thought: "先打开设置"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "设置已打开，现在按返回键回桌面"
+        action_type: key_event
+        key: "home"
+    - tool_call:
+        thought: "已回到桌面，任务完成"
+        action_type: finish
+        summary: "已打开设置并返回桌面"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=open_app"
+    - logcat: "action_type=key_event"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+# ── New Mock LLM Scenarios (action type coverage) ────────────────────────────
+
+- name: type_text_mock
+  category: smoke
+  instruction: "在搜索框输入 hello"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开搜索应用"
+        action_type: open_app
+        app_name: "搜索"
+    - tool_call:
+        thought: "在搜索框中输入 hello"
+        action_type: type_text
+        text: "hello"
+    - tool_call:
+        thought: "已输入文本，任务完成"
+        action_type: finish
+        summary: "已在搜索框输入 hello"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=type_text"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: swipe_mock
+  category: smoke
+  instruction: "向下滑动屏幕"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "用户要向下滑动"
+        action_type: swipe
+        direction: "down"
+    - tool_call:
+        thought: "已滑动，任务完成"
+        action_type: finish
+        summary: "已向下滑动屏幕"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=swipe"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: key_event_back_mock
+  category: smoke
+  instruction: "按返回键"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开一个应用先"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "按返回键"
+        action_type: key_event
+        key: "back"
+    - tool_call:
+        thought: "已按返回，完成"
+        action_type: finish
+        summary: "已按返回键"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=key_event"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: wait_action_mock
+  category: smoke
+  instruction: "等待3秒"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "用户要等待"
+        action_type: wait
+        duration: 3
+    - tool_call:
+        thought: "等待完成"
+        action_type: finish
+        summary: "已等待3秒"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=wait"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: fail_action_mock
+  category: smoke
+  instruction: "执行不可能的操作"
+  timeout: 15
+  mock_responses:
+    - tool_call:
+        thought: "这个操作无法完成"
+        action_type: fail
+        reason: "无法执行此操作"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=fail"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: remember_action_mock
+  category: smoke
+  instruction: "记住我的名字是小明"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "记录用户名字"
+        action_type: remember
+        content: "用户名字是小明"
+    - tool_call:
+        thought: "已记录，完成"
+        action_type: finish
+        summary: "已记住你的名字是小明"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=remember"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: ask_user_mock
+  category: smoke
+  instruction: "问我喜欢什么颜色然后记住"
+  timeout: 25
+  mock_responses:
+    - tool_call:
+        thought: "需要问用户喜欢什么颜色"
+        action_type: ask_user
+        question: "你喜欢什么颜色？"
+    - tool_call:
+        thought: "用户说蓝色，记录下来"
+        action_type: remember
+        content: "用户喜欢蓝色"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "已记住你喜欢蓝色"
+  pre_steps:
+    - "adb shell setenforce 0"
+  answers:
+    - wait_for: "ask_user"
+      answer: "蓝色"
+      delay: 1
+  verify:
+    - logcat: "action_type=ask_user"
+    - logcat: "WaitingForUser"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: note_with_action_mock
+  category: smoke
+  instruction: "打开电话并记录一个笔记"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开电话应用并记录笔记"
+        action_type: open_app
+        app_name: "电话"
+        note: "已打开电话应用"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "已打开电话并记录笔记"
+  pre_steps:
+    - "adb shell setenforce 0"
+  verify:
+    - logcat: "action_type=open_app"
+    - logcat: "note recorded"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+- name: handoff_mock
+  category: smoke
+  instruction: "需要你手动操作的任务"
+  timeout: 30
+  mock_responses:
+    - tool_call:
+        thought: "这个任务需要用户手动操作"
+        action_type: handoff_user
+        reason: "需要手动验证码输入"
+    - tool_call:
+        thought: "用户完成手动操作，任务结束"
+        action_type: finish
+        summary: "手动操作已完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+  answers:
+    - wait_for: "WaitingForHandoff"
+      command: "debug complete_handoff"
+      delay: 2
+  verify:
+    - logcat: "action_type=handoff_user"
+    - logcat: "WaitingForHandoff"
+    - logcat: "Task completed"
+  post_steps:
+    - "adb shell setenforce 1"
+
+# ── Debug/Lifecycle Scenarios (dumpsys-driven) ──────────────────────────────
+
+- name: view_mode_transition
+  category: smoke
+  instruction: "打开设置"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开设置"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "已打开设置"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis debug view"
+    - "sleep:2"
+  verify:
+    - logcat: "Task completed"
+    - dumpsys_contains: "VIEW"
+
+- name: stop_destroys_vd
+  category: smoke
+  instruction: "打开设置"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开设置"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "已打开设置"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis debug stop"
+    - "sleep:2"
+  verify:
+    - logcat: "Task completed"
+    - vd_exists: false
+
+- name: repeat_guard_type_text
+  category: smoke
+  instruction: "输入测试文本"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开应用"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis debug repeat_type_text_block"
+    - "sleep:1"
+  verify:
+    - logcat: "Task completed"
+    - logcat: "repeat_guard"
+
+- name: repeat_guard_tap_block
+  category: smoke
+  instruction: "点击测试"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开应用"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis debug repeat_tap_block"
+    - "sleep:1"
+  verify:
+    - logcat: "Task completed"
+    - logcat: "repeat_guard"
+
+- name: repeat_guard_tap_allow
+  category: smoke
+  instruction: "点击测试允许"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开应用"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis debug repeat_tap_allow"
+    - "sleep:1"
+  verify:
+    - logcat: "Task completed"
+    - logcat_absent: "Repeat guard.*blocked"
+
+- name: user_supplement
+  category: smoke
+  instruction: "打开设置"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "打开设置"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "已打开设置"
+  pre_steps:
+    - "adb shell setenforce 0"
+  answers:
+    - wait_for: "action_type=open_app"
+      command: "inject supplement 用户补充信息测试"
+      delay: 1
+  verify:
+    - logcat: "Task completed"
+    - logcat: "Supplement"
+
+# ── IM remote control scenarios ────────────────────────────────────────────────
+
+- name: remote_im_inbound
+  category: smoke
+  instruction: "直接用 finish 动作完成"
+  timeout: 30
+  mock_responses:
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已完成"
+    - tool_call:
+        thought: "打开设置"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已打开设置"
+  extra_deeplink_params:
+    im_remote_enabled: "true"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis im fake on"
+    - "sleep:1"
+    - "adb shell dumpsys opencyvis im set-pairing-code telegram 847293"
+    - "sleep:1"
+    - "adb shell dumpsys opencyvis im inbound telegram owner1 owner1 /pair 847293"
+    - "sleep:2"
+    - "adb shell dumpsys opencyvis im inbound telegram owner1 owner1 打开设置"
+    - "sleep:10"
+  verify:
+    - logcat: "Task completed"
+    - im_outbound_contains: "Paired successfully"
+    - im_outbound_contains: "\"kind\":\"TEXT\""
+
+- name: remote_im_pairing_wrong_code
+  category: smoke
+  instruction: "直接用 finish 动作完成"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已完成"
+  extra_deeplink_params:
+    im_remote_enabled: "true"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis im fake on"
+    - "sleep:1"
+    - "adb shell dumpsys opencyvis im set-pairing-code telegram 847293"
+    - "sleep:1"
+    - "adb shell dumpsys opencyvis im inbound telegram owner1 owner1 /pair 000000"
+    - "sleep:2"
+  verify:
+    - logcat: "Task completed"
+    - im_outbound_contains: "Wrong pairing code"
+
+- name: remote_im_unpaired_hint
+  category: smoke
+  instruction: "直接用 finish 动作完成"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已完成"
+  extra_deeplink_params:
+    im_remote_enabled: "true"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "adb shell dumpsys opencyvis im fake on"
+    - "sleep:1"
+    - "adb shell dumpsys opencyvis im inbound telegram sender1 chat1 hello"
+    - "sleep:2"
+  verify:
+    - logcat: "Task completed"
+    - im_outbound_contains: "/pair"
+
+- name: remote_im_cold_start
+  category: smoke
+  instruction: ""
+  skip_start_agent: true
+  timeout: 45
+  mock_responses:
+    - tool_call:
+        thought: "打开设置"
+        action_type: open_app
+        app_name: "设置"
+    - tool_call:
+        thought: "完成"
+        action_type: "finish"
+        summary: "已打开设置"
+  extra_deeplink_params:
+    im_remote_enabled: "true"
+  pre_steps:
+    - "adb shell setenforce 0"
+    - "adb shell am force-stop ai.opencyvis"
+    - "adb shell 'sed -i \"/telegram_allowed_chat_id/d\" /data/data/ai.opencyvis/shared_prefs/opencyvis_config.xml'"
+  post_steps:
+    - "adb shell dumpsys opencyvis im fake on"
+    - "sleep:1"
+    - "adb shell dumpsys opencyvis im set-pairing-code telegram 847293"
+    - "sleep:1"
+    - "adb shell dumpsys opencyvis im inbound telegram owner1 owner1 /pair 847293"
+    - "sleep:2"
+    - "adb shell dumpsys opencyvis im inbound telegram owner1 owner1 打开设置"
+    - "sleep:15"
+  verify:
+    - logcat: "Task completed"
+    - im_outbound_contains: "Paired successfully"
+    - im_outbound_contains: "Task complete"
+
+# ── Routine feature scenarios ─────────────────────────────────────────────────
+
+- name: routine_homepage_display
+  category: smoke
+  # Verify routines are shown on homepage after fresh start.
+  # Uses mock to finish immediately, then restarts app to show idle routines screen.
+  instruction: "直接用 finish 动作完成"
+  timeout: 15
+  mock_responses:
+    - tool_call:
+        thought: "直接完成"
+        action_type: "finish"
+        summary: "已完成"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    # Force-stop to get clean idle state, then relaunch
+    - "adb shell am force-stop ai.opencyvis"
+    - "sleep:1"
+    - "adb shell am start -n ai.opencyvis/.ui.ControlPanelActivity"
+    - "sleep:3"
+  verify:
+    - logcat: "Task completed"
+    - ui_element: "routines_container"
+    - ui_text: "What would you like to do?"
+    - ui_element: "card_recommended"
+    - ui_element: "recycler_routine_chips"
+
+- name: routine_execute_chip
+  category: smoke
+  # Tap a routine chip and verify agent starts with correct instruction.
+  # Uses skip_start_agent so the chip tap (not dumpsys) triggers the agent.
+  # Uses chip_text resource-id to tap the first visible chip (locale-independent).
+  instruction: ""
+  skip_start_agent: true
+  timeout: 30
+  mock_responses:
+    - tool_call:
+        thought: "User wants to check emails"
+        action_type: finish
+        summary: "You have 3 unread emails"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "sleep:5"
+    - "tap_ui:chip_text"
+  verify:
+    - logcat: "Task completed"
+    - logcat: "action_type=finish"
+
+- name: routine_execute_recommended
+  category: smoke
+  # Tap the recommended routine card and verify execution.
+  # On fresh install, recommended shows the most-used routine (first builtin by sort order).
+  # Uses skip_start_agent so the card tap (not dumpsys) triggers the agent.
+  instruction: ""
+  skip_start_agent: true
+  timeout: 30
+  mock_responses:
+    - tool_call:
+        thought: "User wants to order coffee"
+        action_type: finish
+        summary: "Opened coffee app"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "sleep:3"
+    - "tap_ui:card_recommended"
+  verify:
+    - logcat: "Task completed"
+    - logcat: "action_type=finish"
+
+- name: routine_recent_after_execute
+  category: smoke
+  # Execute a routine, restart app, verify it appears in the recent section.
+  instruction: ""
+  skip_start_agent: true
+  timeout: 30
+  mock_responses:
+    - tool_call:
+        thought: "Check emails"
+        action_type: finish
+        summary: "You have 3 unread emails"
+  pre_steps:
+    - "adb shell setenforce 0"
+  post_steps:
+    - "sleep:3"
+    - "tap_text:Check emails"
+    - "sleep:8"
+    - "adb shell am force-stop ai.opencyvis"
+    - "sleep:1"
+    - "adb shell am start -n ai.opencyvis/.ui.ControlPanelActivity"
+    - "sleep:3"
+  verify:
+    - logcat: "Task completed"
+    - ui_element: "container_recent_routines"
+    - ui_element: "label_recent"
+
+# ── VD Launcher Focus Guard ──────────────────────────────────────────────────
+
+- name: launcher_tap_blocked
+  category: smoke
+  instruction: "查询天气"
+  timeout: 20
+  mock_responses:
+    - tool_call:
+        thought: "尝试点击应用列表打开天气应用"
+        action_type: tap
+        x: 500
+        y: 955
+    - tool_call:
+        thought: "tap被阻止了，用list_apps搜索"
+        action_type: list_apps
+        keyword: "browser"
+    - tool_call:
+        thought: "找到浏览器，打开它"
+        action_type: open_app
+        app_name: "browser"
+    - tool_call:
+        thought: "完成"
+        action_type: finish
+        summary: "已打开浏览器查询天气"
+  pre_steps:
+    - "adb shell setenforce 0"
+    - "adb shell am force-stop ai.opencyvis"
+  verify:
+    - logcat: "Action blocked: launcher is the foreground app"
+    - logcat: "list_apps result"
+    - logcat: "Task completed"

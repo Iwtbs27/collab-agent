@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Expanded: Dynamic Island style — centered top capsule -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/pill_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_island"
+    android:paddingStart="14dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:minWidth="180dp"
+    android:elevation="12dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Pulsing state dot -->
+    <View
+        android:id="@+id/pill_dot"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_overlay_dot" />
+
+    <!-- Task text -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/pill_task"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OpenCyvis"
+            android:textColor="@color/on_surface_full"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:maxWidth="160dp" />
+
+        <TextView
+            android:id="@+id/pill_step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/overlay_running"
+            android:textColor="@color/on_surface_medium"
+            android:textSize="10sp"
+            android:layout_marginTop="1dp"
+            android:fontFamily="sans-serif" />
+    </LinearLayout>
+
+    <!-- Stop button -->
+    <ImageButton
+        android:id="@+id/pill_stop"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_island_stop"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:scaleType="centerInside"
+        android:padding="4dp"
+        android:contentDescription="@string/overlay_stop"
+        app:tint="@color/color_danger" />
+
+</LinearLayout>

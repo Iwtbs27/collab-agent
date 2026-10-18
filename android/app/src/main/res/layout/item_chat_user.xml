@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="4dp">
+
+    <TextView
+        android:id="@+id/text_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:maxWidth="280dp"
+        android:background="@drawable/bg_bubble_user"
+        android:textColor="@color/on_surface_high"
+        android:textSize="14sp"
+        android:lineSpacingMultiplier="1.25"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:fontFamily="sans-serif" />
+</FrameLayout>

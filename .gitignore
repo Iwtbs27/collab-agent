@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Local setup notes and signing keys
+/配置信息/
+android/platform-key/
+*.jks
+*.keystore
+*.p12
+*.pfx
+
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+android/app/libs/framework-stubs.jar
+*.apk
+*.idsig
+.superpowers/
+android/app/.cxx/
+android/build/
+.idea/

@@ -1,0 +1,55 @@
+java_import {
+    name: "okhttp3-prebuilt",
+    jars: ["libs/okhttp.jar"],
+}
+
+java_import {
+    name: "okio-prebuilt",
+    jars: ["libs/okio.jar"],
+}
+
+java_import {
+    name: "room-runtime-prebuilt",
+    jars: ["libs/room-runtime.jar"],
+}
+
+java_import {
+    name: "room-common-prebuilt",
+    jars: ["libs/room-common.jar"],
+}
+
+java_import {
+    name: "sqlite-prebuilt",
+    jars: ["libs/sqlite.jar"],
+}
+
+java_import {
+    name: "sqlite-framework-prebuilt",
+    jars: ["libs/sqlite-framework.jar"],
+}
+
+android_app {
+    name: "OpenCyvis",
+    srcs: ["src/main/java/**/*.kt"],
+    resource_dirs: ["src/main/res"],
+    manifest: "src/main/AndroidManifest.xml",
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    static_libs: [
+        "androidx.core_core-ktx",
+        "androidx.appcompat_appcompat",
+        "com.google.android.material_material",
+        "kotlinx-coroutines-android",
+        "okhttp3-prebuilt",
+        "okio-prebuilt",
+        "room-runtime-prebuilt",
+        "room-common-prebuilt",
+        "sqlite-prebuilt",
+        "sqlite-framework-prebuilt",
+    ],
+    optimize: {
+        enabled: false,
+    },
+}

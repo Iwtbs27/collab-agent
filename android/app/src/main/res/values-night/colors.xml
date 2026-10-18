@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Surface / Background colors (dark overrides) -->
+    <color name="surface">#FF0D0D0D</color>
+    <color name="surface_container">#FF141414</color>
+    <color name="surface_card">#FF141418</color>
+    <color name="surface_overlay_10">#1AFFFFFF</color>
+    <color name="surface_overlay_5">#0DFFFFFF</color>
+    <color name="surface_overlay_13">#22FFFFFF</color>
+    <color name="surface_overlay_20">#33FFFFFF</color>
+    <color name="surface_panel">#F0141414</color>
+    <color name="surface_banner">#E6141414</color>
+    <color name="surface_pill">#EB141414</color>
+    <color name="surface_island">#F0000000</color>
+
+    <!-- Text colors (dark overrides) -->
+    <color name="on_surface">#E0FFFFFF</color>
+    <color name="on_surface_medium">#B0FFFFFF</color>
+    <color name="on_surface_high">#C0FFFFFF</color>
+    <color name="on_surface_full">#F0FFFFFF</color>
+    <color name="on_surface_muted">#80FFFFFF</color>
+    <color name="on_surface_hint">#40FFFFFF</color>
+    <color name="on_surface_subtle">#50FFFFFF</color>
+    <color name="text_caption">#999999</color>
+    <color name="text_subtitle">#AAAAAA</color>
+    <color name="text_link">#80A0FF</color>
+    <color name="text_back_button">#80A0FF</color>
+    <color name="text_countdown">#9CC7FF</color>
+    <color name="text_cycle">#94A3B8</color>
+    <color name="text_on_bubble_user">#F0FFFFFF</color>
+
+    <!-- Dialog actions -->
+    <color name="dialog_action">#E8BE4D</color>
+</resources>

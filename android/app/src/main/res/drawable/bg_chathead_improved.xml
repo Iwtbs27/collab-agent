@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Improved chat-head: gradient circle with white border and glow effect -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer glow ring -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#554ADE80" />
+            <size android:width="58dp" android:height="58dp" />
+        </shape>
+    </item>
+    <!-- Main circle with gradient -->
+    <item android:left="3dp" android:top="3dp" android:right="3dp" android:bottom="3dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="linear"
+                android:angle="135"
+                android:startColor="#FF1976D2"
+                android:endColor="#FF4ADE80" />
+            <stroke
+                android:width="2dp"
+                android:color="#55FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

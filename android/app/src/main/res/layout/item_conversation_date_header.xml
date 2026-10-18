@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/text_date_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textColor="@color/text_subtitle"
+    android:textSize="10sp"
+    android:textAllCaps="true"
+    android:letterSpacing="0.1"
+    android:paddingTop="14dp"
+    android:paddingBottom="8dp" />

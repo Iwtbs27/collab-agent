@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/surface"
+    android:fitsSystemWindows="true">
+
+    <!-- Status bar -->
+    <LinearLayout
+        android:id="@+id/status_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:background="@drawable/bg_status_bar">
+
+        <!-- Accent dot indicator -->
+        <View
+            android:id="@+id/status_dot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/fab_background" />
+
+        <TextView
+            android:id="@+id/text_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="OpenCyvis"
+            android:textSize="18sp"
+            android:textColor="@color/on_surface"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.02" />
+
+        <Button
+            android:id="@+id/btn_history"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="🕓"
+            android:textSize="18sp"
+            android:minWidth="44dp"
+            style="?android:attr/buttonBarButtonStyle"
+            android:textColor="@color/on_surface_medium" />
+
+        <Button
+            android:id="@+id/btn_memory"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="🧠"
+            android:textSize="18sp"
+            android:minWidth="44dp"
+            style="?android:attr/buttonBarButtonStyle"
+            android:textColor="@color/on_surface_medium" />
+
+        <Button
+            android:id="@+id/btn_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="⚙"
+            android:textSize="18sp"
+            android:minWidth="44dp"
+            style="?android:attr/buttonBarButtonStyle"
+            android:textColor="@color/on_surface_medium" />
+    </LinearLayout>
+
+    <!-- Subtle divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/surface_overlay_10" />
+
+    <!-- Main content area -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/surface">
+
+        <!-- Chat messages -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_chat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:clipToPadding="false" />
+
+        <!-- Idle state: greeting + routines -->
+        <ScrollView
+            android:id="@+id/routines_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Greeting section -->
+                <TextView
+                    android:id="@+id/text_greeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/greeting_morning"
+                    android:textColor="@color/on_surface"
+                    android:textSize="28sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/greeting_subtitle"
+                    android:textColor="@color/on_surface_medium"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="32dp" />
+
+                <!-- Recommended routine card -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_recommended"
+                    android:textColor="@color/text_caption"
+                    android:textSize="12sp"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/card_recommended"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_recommended_card"
+                    android:padding="16dp"
+                    android:layout_marginBottom="24dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/recommended_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="28sp"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/recommended_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/on_surface"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/recommended_desc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/on_surface_medium"
+                        android:textSize="13sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <!-- Quick actions section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_quick_actions"
+                    android:textColor="@color/text_caption"
+                    android:textSize="12sp"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_routine_chips"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never" />
+
+                <!-- Recent routines section -->
+                <TextView
+                    android:id="@+id/label_recent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_recent"
+                    android:textColor="@color/text_caption"
+                    android:textSize="12sp"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/container_recent_routines"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+
+    <!-- Bottom input bar -->
+    <LinearLayout
+        android:id="@+id/input_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/surface_container"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp">
+
+        <!-- Action buttons row -->
+        <LinearLayout
+            android:id="@+id/action_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone"
+            android:paddingBottom="8dp">
+
+            <Button
+                android:id="@+id/btn_view_operation"
+                style="@style/OpenCyvis.Button.Custom"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="View"
+                android:textSize="13sp"
+                android:textColor="@color/on_surface_medium"
+                android:background="@drawable/bg_action_btn"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btn_stop"
+                style="@style/OpenCyvis.Button.Custom"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="Stop"
+                android:textSize="13sp"
+                android:textColor="@color/color_danger"
+                android:background="@drawable/bg_action_btn_danger"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <!-- Input row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/edit_input"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="10dp"
+                android:hint="Ask me anything..."
+                android:inputType="text"
+                android:background="@drawable/bg_input_field"
+                android:paddingHorizontal="20dp"
+                android:textSize="15sp"
+                android:textColor="@color/on_surface"
+                android:textColorHint="@color/on_surface_hint"
+                android:maxLines="1"
+                android:fontFamily="sans-serif" />
+
+            <Button
+                android:id="@+id/btn_voice_input"
+                style="@style/OpenCyvis.Button.Custom"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:text="🎙"
+                android:textSize="16sp"
+                android:textColor="@color/on_surface_medium"
+                android:background="@drawable/bg_action_btn"
+                android:padding="0dp"
+                android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btn_send"
+                style="@style/OpenCyvis.Button.Custom"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="▲"
+                android:textSize="16sp"
+                android:textColor="@color/surface"
+                android:background="@drawable/bg_btn_send"
+                android:textStyle="bold"
+                android:padding="0dp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

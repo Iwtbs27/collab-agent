@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OpenCyvis" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">@color/surface_container</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+    </style>
+
+    <style name="Theme.OpenCyvis.Settings" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/dialog_action</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+    </style>
+
+    <style name="Theme.OpenCyvis.NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/surface_container</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+    </style>
+
+    <style name="Theme.OpenCyvis.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">@color/surface_container</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+    </style>
+</resources>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OpenCyvis" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">@color/surface_container</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+    </style>
+
+    <style name="Theme.OpenCyvis.Settings" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/dialog_action</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+    </style>
+
+    <style name="Theme.OpenCyvis.NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/surface_container</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+    </style>
+
+    <style name="Theme.OpenCyvis.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">@color/surface_container</item>
+        <item name="colorOnPrimary">@color/on_surface</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.OpenCyvis.AlertDialog</item>
+    </style>
+
+    <style name="ThemeOverlay.OpenCyvis.AlertDialog" parent="ThemeOverlay.Material3.Dialog.Alert">
+        <item name="colorPrimary">@color/dialog_action</item>
+        <item name="colorAccent">@color/dialog_action</item>
+        <item name="android:colorAccent">@color/dialog_action</item>
+    </style>
+
+    <!-- Button style that respects android:background drawable -->
+    <style name="OpenCyvis.Button.Custom" parent="Widget.Material3.Button.TextButton">
+        <item name="backgroundTint">@null</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+    </style>
+</resources>

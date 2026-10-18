@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .container {
+    width: 720px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 28px;
+  }
+
+  /* Shared Layer */
+  .shared-layer {
+    border: 2px solid #4A90D9;
+    border-radius: 14px;
+    padding: 20px 24px 24px;
+    background: #F7FAFF;
+    margin-bottom: 16px;
+  }
+  .shared-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4A90D9;
+    margin-bottom: 16px;
+  }
+  .modules {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .module {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #dde3ea;
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .module .name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+  .module .desc {
+    font-size: 11.5px;
+    color: #666;
+    line-height: 1.4;
+  }
+
+  /* Interface bar */
+  .interface-bar {
+    background: #f0f0f0;
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 12.5px;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    color: #333;
+    letter-spacing: -0.2px;
+  }
+
+  /* Backend cards row */
+  .backends {
+    display: flex;
+    gap: 16px;
+  }
+  .backend {
+    flex: 1;
+    border-radius: 14px;
+    padding: 20px 22px;
+  }
+  .backend.system {
+    border: 2px solid #34A853;
+    background: #F6FFF8;
+  }
+  .backend.remote {
+    border: 2px solid #4A90D9;
+    background: #F7FAFF;
+  }
+  .backend .badge {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .backend.system .badge { color: #34A853; }
+  .backend.remote .badge { color: #4A90D9; }
+  .backend .title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+  .backend .subtitle {
+    font-size: 12.5px;
+    color: #555;
+    margin-bottom: 14px;
+  }
+  .backend .detail {
+    font-size: 12.5px;
+    color: #333;
+    line-height: 1.85;
+  }
+  .backend .detail b {
+    color: #1a1a1a;
+  }
+  .backend .detail code {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 11.5px;
+    background: rgba(0,0,0,0.05);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .backend .footer {
+    margin-top: 14px;
+    font-size: 12px;
+    color: #888;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>OpenCyvis Architecture: Dual Backend Modes</h1>
+
+  <div class="shared-layer">
+    <div class="shared-label">Shared Layer — fully reused across both modes</div>
+    <div class="modules">
+      <div class="module">
+        <div class="name">AgentEngine</div>
+        <div class="desc">observe–think–act</div>
+      </div>
+      <div class="module">
+        <div class="name">LLM Backend</div>
+        <div class="desc">OpenAI / Anthropic / Ollama</div>
+      </div>
+      <div class="module">
+        <div class="name">UI Layer</div>
+        <div class="desc">ControlPanel / Chat / Settings</div>
+      </div>
+      <div class="module">
+        <div class="name">ActionExecutor</div>
+        <div class="desc">14 action types</div>
+      </div>
+    </div>
+    <div class="interface-bar">
+      interface PrivilegeBackend { injectInput(), captureScreen(), moveTask() }
+    </div>
+  </div>
+
+  <div class="backends">
+    <div class="backend system">
+      <div class="badge">System App Mode</div>
+      <div class="title">SystemBackend</div>
+      <div class="subtitle">Platform-signed · flashed into AOSP image</div>
+      <div class="detail">
+        <b>Screenshot:</b> <code>SurfaceControl.screenshot()</code><br>
+        <b>Input:</b> direct <code>InputManager</code><br>
+        <b>VD mgmt:</b> system reflection APIs<br>
+      </div>
+      <div class="footer">Full privileges, best performance</div>
+    </div>
+    <div class="backend remote">
+      <div class="badge">Standard App Mode</div>
+      <div class="title">RemoteBackend</div>
+      <div class="subtitle">ADB wireless debug · APK install-and-go</div>
+      <div class="detail">
+        <b>Screenshot:</b> <code>ImageReader</code> from VD Surface<br>
+        <b>Input:</b> AIDL proxy to <code>PrivilegedService</code><br>
+        <b>VD mgmt:</b> background service proxy<br>
+      </div>
+      <div class="footer">Zero flashing, any Android device</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

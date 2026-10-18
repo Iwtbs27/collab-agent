@@ -1,0 +1,138 @@
+name: Verify
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: self-hosted-android-device
+  cancel-in-progress: true
+
+jobs:
+  unit-and-lint:
+    runs-on: self-hosted
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure build environment
+        run: |
+          echo "sdk.dir=$HOME/Library/Android/sdk" > android/local.properties
+          echo "JAVA_HOME=$(/usr/libexec/java_home -v 17)" >> "$GITHUB_ENV"
+
+      - name: Unit tests
+        working-directory: android
+        run: ./gradlew test
+
+      - name: Lint
+        working-directory: android
+        run: ./gradlew lint
+
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: android/app/build/reports/tests/
+
+  e2e:
+    runs-on: self-hosted
+    timeout-minutes: 30
+    needs: unit-and-lint
+    env:
+      SERIAL: emulator-5554
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install test dependencies
+        run: pip3 install --break-system-packages pyyaml httpx pytest
+
+      - name: Reset device
+        run: ./scripts/ci/reset-device.sh
+
+      - name: Ensure Ollama is running
+        run: |
+          if ! curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+            echo "Starting Ollama..."
+            ollama serve &
+            sleep 3
+          fi
+          echo "Ollama models:"
+          curl -sf http://localhost:11434/api/tags | python3 -c "import sys,json; [print(f'  {m[\"name\"]}') for m in json.load(sys.stdin).get('models',[])]" || true
+
+      - name: Configure build environment
+        run: |
+          echo "sdk.dir=$HOME/Library/Android/sdk" > android/local.properties
+          echo "JAVA_HOME=$(/usr/libexec/java_home -v 17)" >> "$GITHUB_ENV"
+
+      - name: Build and deploy (local model)
+        working-directory: android
+        run: bash deploy-emu.sh ollama
+
+      - name: Run E2E smoke tests
+        id: e2e-smoke
+        run: |
+          pytest tests/e2e/test_scenarios.py -v \
+            --serial emulator-5554 \
+            --category smoke \
+            --tb=short \
+            --junit-xml=e2e-results.xml \
+            2>&1 | tee e2e-results.txt
+
+      - name: Run E2E llm tests (soft gate)
+        if: always() && steps.e2e-smoke.outcome == 'success'
+        continue-on-error: true
+        run: |
+          pytest tests/e2e/test_scenarios.py -v \
+            --serial emulator-5554 \
+            --category llm \
+            --tb=short \
+            2>&1 | tee -a e2e-results.txt
+
+      - name: Capture logcat
+        if: always()
+        run: adb -s emulator-5554 logcat -d > logcat-e2e.txt || true
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            e2e-results.txt
+            e2e-results.xml
+            logcat-e2e.txt
+
+      - name: Post E2E results to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('e2e-results.txt')) {
+              console.log('No e2e-results.txt found, skipping PR comment');
+              return;
+            }
+            const results = fs.readFileSync('e2e-results.txt', 'utf8');
+            const last300 = results.split('\n').slice(-300).join('\n');
+            const summary = `## E2E Test Results\n\n\`\`\`\n${last300}\n\`\`\``;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const existing = comments.find(c => c.body.includes('## E2E Test Results'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body: summary
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body: summary
+              });
+            }

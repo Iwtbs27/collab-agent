@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenCyvis</string>
+    <string name="hint_api_key">API Key</string>
+    <string name="hint_model">Model (e.g. gpt-5.5, claude-sonnet-4-7)</string>
+    <string name="hint_base_url">Base URL</string>
+    <string name="label_max_steps">Max steps: 100</string>
+    <string name="hint_max_steps">Max steps (default: 100)</string>
+    <string name="label_debug_mode">Debug mode: show LLM response details</string>
+    <string name="btn_start">Start Agent</string>
+    <string name="btn_test_screenshot">Test Screenshot</string>
+    <string name="btn_test_tap">Test Tap Center</string>
+    <string name="vd_btn_back">Back</string>
+    <string name="vd_btn_minimize">Min</string>
+    <string name="vd_btn_take_over">Take over</string>
+    <string name="vd_btn_return_control">Return</string>
+    <string name="vd_btn_stop">Stop</string>
+    <string name="vd_hint_answer">Your answer...</string>
+    <string name="vd_cd_minimize">Minimize to floating window</string>
+    <string name="handoff_title">Input takeover required</string>
+    <string name="handoff_active_message">Please complete sensitive input on the device. The agent will not read or store your input.</string>
+    <string name="handoff_pending_message">Returning control to agent in %1$d seconds.</string>
+    <string name="handoff_return_now">Return now</string>
+    <string name="handoff_cancel_return">Cancel return</string>
+    <string name="toast_microphone_permission_required">Microphone permission is required</string>
+    <string-array name="api_providers">
+        <item>OpenAI Compatible</item>
+        <item>Anthropic</item>
+        <item>Ollama (Local)</item>
+        <item>Kimi</item>
+    </string-array>
+    <string-array name="api_provider_values">
+        <item>openai</item>
+        <item>anthropic</item>
+        <item>ollama</item>
+        <item>kimi</item>
+    </string-array>
+
+    <!-- Control panel -->
+    <string name="btn_memory_label">Mem</string>
+    <string name="supplement_hint">Add task info…</string>
+    <string name="supplement_prefix">Supplement: %1$s</string>
+    <string name="task_complete">Task completed: %1$s</string>
+    <string name="task_failed">Task failed: %1$s</string>
+    <string name="task_max_steps">Max steps reached (%1$d), task incomplete</string>
+    <string name="task_error">Error: %1$s</string>
+    <string name="task_complete_step">Task completed (Step %1$d)</string>
+    <string name="handoff_sensitive_input">Sensitive input required on device: %1$s</string>
+    <string name="handoff_waiting_hint">Waiting for you to complete sensitive input…</string>
+    <string name="handoff_reason_default">Please complete sensitive input on the device</string>
+    <string name="handoff_page_changed">Page has changed, agent taking over</string>
+
+    <!-- Settings -->
+    <string name="action_settings">Settings</string>
+    <string name="btn_manage_memory">Manage Memory</string>
+
+    <!-- Preference screen -->
+    <string name="pref_category_ai_model">AI Model</string>
+    <string name="pref_category_remote_control">Remote Control</string>
+    <string name="pref_category_security">Security</string>
+    <string name="pref_category_developer">Developer</string>
+    <string name="pref_category_about">About</string>
+    <string name="pref_app_blacklist">App Blacklist</string>
+    <string name="pref_app_blacklist_summary">Select apps the AI cannot access</string>
+    <string name="pref_app_blacklist_none">No apps blacklisted</string>
+    <string name="pref_provider_title">Provider</string>
+    <string name="pref_api_key_title">API Key</string>
+    <string name="pref_masked_summary">Tap to edit</string>
+    <string name="pref_not_set">Not set</string>
+    <string name="pref_model_title">Model</string>
+    <string name="pref_base_url_title">Base URL</string>
+    <string name="pref_max_steps_title">Max Steps</string>
+    <string name="pref_max_steps_summary">Maximum agent steps</string>
+    <string name="pref_share_config_qr">Share Config QR</string>
+    <string name="pref_share_config_qr_summary">Generate QR code to share LLM settings</string>
+    <string name="pref_scan_config_qr">Scan Config QR</string>
+    <string name="pref_scan_config_qr_summary">Import LLM settings from QR code</string>
+    <string name="qr_share_title">Share LLM Config</string>
+    <string name="qr_scan_no_result">No QR code detected</string>
+    <string name="qr_scan_invalid">Invalid QR code — not an OpenCyvis config link</string>
+
+    <!-- Provider Profiles -->
+    <string name="pref_profile_title">Profile</string>
+    <string name="pref_profile_summary_none">No profile — tap to save or switch</string>
+    <string name="pref_profile_summary_active">Active: %1$s</string>
+    <string name="profile_dialog_title">Provider Profiles</string>
+    <string name="profile_dialog_new">+ New Profile</string>
+    <string name="profile_save_as_title">Save Profile As</string>
+    <string name="profile_name_hint">Profile name</string>
+    <string name="profile_saved">Profile \"%1$s\" saved</string>
+    <string name="profile_switched">Switched to \"%1$s\"</string>
+    <string name="profile_deleted">Profile \"%1$s\" deleted</string>
+    <string name="profile_name_empty">Profile name cannot be empty</string>
+    <string name="profile_name_exists">Profile \"%1$s\" already exists</string>
+    <string name="profile_delete_confirm">Delete profile \"%1$s\"?</string>
+
+    <string name="pref_im_enabled_title">Enable Remote IM</string>
+    <string name="pref_im_enabled_summary">Control the agent via messaging apps</string>
+    <string name="pref_im_step_screenshots_title">Step Screenshots</string>
+    <string name="pref_im_step_screenshots_summary">Send a screenshot after each step</string>
+    <string name="pref_telegram_title">Telegram</string>
+    <string name="pref_telegram_summary">Configure Telegram bot</string>
+    <string name="pref_feishu_title">Feishu</string>
+    <string name="pref_feishu_summary">Configure Feishu app</string>
+    <string name="pref_pair_status_title">Status</string>
+    <string name="pref_generate_code_summary">Generate a code to pair your account</string>
+    <string name="pref_unpair_summary">Remove the current pairing</string>
+    <string name="pref_telegram_bot_token_title">Bot Token</string>
+    <string name="pref_feishu_app_id_title">App ID</string>
+    <string name="pref_feishu_app_secret_title">App Secret</string>
+    <string name="pref_debug_mode_title">Debug Mode</string>
+    <string name="pref_debug_mode_summary">Show LLM response details</string>
+    <string name="pref_show_debug_routines_title">Debug Routines</string>
+    <string name="pref_show_debug_routines_summary">Show debug shortcuts on home screen</string>
+    <string name="pref_manage_memory_summary">View and edit agent memories</string>
+    <string name="pref_advanced_title">Advanced</string>
+    <string name="pref_advanced_summary">Manual IDs for debug and recovery</string>
+    <string name="pref_telegram_chat_id_title">Telegram Chat ID</string>
+    <string name="pref_feishu_open_id_title">Feishu Open ID</string>
+    <string name="pref_version_title">Version</string>
+    <string name="pairing_code_dialog_title">Pairing Code</string>
+    <string name="pairing_code_dialog_message">Send /pair %1$s in your %2$s chat.\n\nThis code expires in 10 minutes.</string>
+
+    <!-- Memory screen -->
+    <string name="memory_title">Memory</string>
+    <string name="memory_search_hint">Search memories</string>
+    <string name="memory_dialog_key_hint">Key</string>
+    <string name="memory_dialog_value_hint">Content</string>
+    <string name="memory_dialog_category_hint">Category</string>
+    <string name="memory_dialog_add_title">Add Memory</string>
+    <string name="memory_dialog_edit_title">Edit Memory</string>
+    <string name="memory_dialog_save">Save</string>
+    <string name="memory_dialog_cancel">Cancel</string>
+    <string name="memory_action_enable">Enable</string>
+    <string name="memory_action_disable">Disable</string>
+    <string name="memory_action_delete">Delete</string>
+    <string name="memory_status_enabled">Enabled</string>
+    <string name="memory_status_disabled">Disabled</string>
+    <string name="memory_source_ai">Remembered by AI</string>
+    <string name="memory_source_user">Added by user</string>
+    <string name="memory_uncategorized">Uncategorized</string>
+
+    <!-- Overlay -->
+    <string name="overlay_running">Running</string>
+    <string name="overlay_waiting_answer">⚠ Waiting for answer</string>
+    <string name="overlay_waiting_handoff">⚠ Waiting for handoff</string>
+    <string name="overlay_paused">Paused</string>
+    <string name="overlay_paused_takeover">Paused / takeover</string>
+    <string name="overlay_stop">Stop</string>
+    <string name="overlay_done">✓ Done</string>
+    <string name="overlay_failed">✗ Failed</string>
+    <string name="notif_task_completed">Task Completed</string>
+    <string name="notif_task_failed_title">Task Failed</string>
+
+    <!-- Supplement info (VD view) -->
+    <string name="supplement_info">Supplemental Info</string>
+
+    <!-- Notifications -->
+    <string name="notif_needs_answer">OpenCyvis needs your answer</string>
+    <string name="notif_open_app">Open OpenCyvis</string>
+    <string name="notif_channel_ask">OpenCyvis Questions</string>
+    <string name="notif_channel_ask_desc">High-priority alerts when the agent is waiting for your answer</string>
+    <string name="notif_max_steps_reached">Max steps reached (%1$d)</string>
+
+    <!-- IM Pairing -->
+    <string name="im_pair_success">Paired successfully!</string>
+    <string name="im_pair_expired">Pairing code expired. Please generate a new one.</string>
+    <string name="im_pair_wrong_code">Wrong pairing code.</string>
+    <string name="im_pair_locked_out">Too many failed attempts. Please try again later.</string>
+    <string name="im_pair_hint">Send /pair &lt;code&gt; to pair with this device.</string>
+    <string name="im_unpair_success">Unpaired successfully.</string>
+    <string name="im_already_paired">Already paired.</string>
+    <string name="im_stopped">Stopped</string>
+    <string name="im_busy">Agent is busy, send /stop to terminate first</string>
+    <string name="im_group_rejected">Commands not supported in group chats</string>
+
+    <!-- IM settings UI -->
+    <string name="im_pairing_code_label">Pairing Code</string>
+    <string name="im_generate_code">Generate Code</string>
+    <string name="im_no_code">Not generated</string>
+    <string name="im_paired_with">Paired: %1$s</string>
+    <string name="im_not_paired">Not paired</string>
+    <string name="im_unpair">Unpair</string>
+    <string name="im_code_expires">Expires in %1$d:%2$02d</string>
+
+    <!-- IM status & notification texts -->
+    <string name="im_status_no_service">AgentService not connected</string>
+    <string name="im_status_idle">Idle: %1$s</string>
+    <string name="im_status_running">Running: step %1$d, %2$s</string>
+    <string name="im_status_waiting_user">Waiting for input: %1$s</string>
+    <string name="im_status_waiting_handoff">Waiting for handoff: %1$s</string>
+    <string name="im_status_error">Error: %1$s</string>
+    <string name="im_status_paused">Paused</string>
+    <string name="im_status_no_engine">No engine</string>
+    <string name="im_notify_ask_user">Question: %1$s</string>
+    <string name="im_notify_handoff">Handoff needed: %1$s</string>
+    <string name="im_notify_task_complete">Task complete: %1$s</string>
+    <string name="im_notify_error">Error: %1$s</string>
+
+    <!-- IM /status extra lines -->
+    <string name="im_status_phone">Phone: %1$s</string>
+    <string name="im_status_device">Device: %1$s %2$s, Android %3$s</string>
+    <string name="im_status_llm">LLM: %1$s / %2$s</string>
+
+    <!-- Feishu QR Registration -->
+    <string name="feishu_qr_scan_title">Scan QR to Create Bot</string>
+    <string name="feishu_qr_scan_summary">One-step setup via Feishu app</string>
+    <string name="feishu_manual_config_title">Manual Configuration</string>
+    <string name="feishu_manual_config_summary">Enter App ID and App Secret manually</string>
+    <string name="feishu_qr_dialog_title">Scan to Create Feishu Bot</string>
+    <string name="feishu_qr_dialog_instruction">Open Feishu and scan this QR code</string>
+    <string name="feishu_qr_time_remaining">Time remaining: %1$d:%2$02d</string>
+    <string name="feishu_qr_success">Feishu bot created successfully!</string>
+    <string name="feishu_qr_timeout">QR code expired. Please try again.</string>
+    <string name="feishu_qr_error">Registration failed: %1$s</string>
+    <string name="feishu_qr_network_error">Network error. Please check your connection.</string>
+    <string name="feishu_pair_auto_hint">Bot ready — send a message to auto-pair</string>
+
+    <!-- Home Screen Greetings -->
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_noon">Good afternoon</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="greeting_subtitle">What would you like to do?</string>
+
+    <!-- Home Screen Sections -->
+    <string name="section_recommended">Recommended</string>
+    <string name="section_quick_actions">Quick Actions</string>
+    <string name="section_recent">Recent</string>
+
+    <!-- Built-in Routines -->
+    <string name="routine_coffee">Order coffee</string>
+    <string name="routine_coffee_desc">Luckin/Starbucks</string>
+    <string name="routine_email">Check emails</string>
+    <string name="routine_email_desc">Unread summary</string>
+    <string name="routine_calendar">Today\'s schedule</string>
+    <string name="routine_calendar_desc">Calendar reminders</string>
+    <string name="routine_weather">Weather</string>
+    <string name="routine_weather_desc">Travel advice</string>
+    <string name="routine_open_app">Open app</string>
+    <string name="routine_open_app_desc">Launch specific app</string>
+    <string name="routine_coffee_instruction">Order a coffee, open Luckin or Starbucks</string>
+    <string name="routine_email_instruction">Check today\'s unread emails</string>
+    <string name="routine_calendar_instruction">Show today\'s schedule</string>
+    <string name="routine_weather_instruction">Check today\'s weather and travel advice</string>
+    <string name="routine_open_app_instruction">Open</string>
+
+    <!-- Debug Routines -->
+    <string name="routine_open_settings">Open Settings</string>
+    <string name="routine_open_settings_desc">Open app settings</string>
+
+    <!-- Routine Management -->
+    <string name="routine_save_title">Save as Routine</string>
+    <string name="routine_save_hint">Enter routine name</string>
+    <string name="routine_save_success">Routine saved</string>
+    <string name="routine_manage_title">Manage Routine</string>
+    <string name="routine_manage_edit">Edit</string>
+    <string name="routine_manage_delete">Delete</string>
+    <string name="routine_manage_pin">Pin to top</string>
+    <string name="routine_manage_unpin">Unpin</string>
+    <string name="routine_edit_title">Edit Routine</string>
+    <string name="routine_delete_title">Delete Routine</string>
+    <string name="routine_delete_message">Delete \"%s\"?</string>
+    <string name="routine_delete_confirm">Delete</string>
+    <string name="routine_instruction_hint">Instruction to send</string>
+
+    <!-- Schedule -->
+    <string name="schedule_title">Scheduled Tasks</string>
+    <string name="schedule_paused">Paused</string>
+    <string name="schedule_next">Next: %s</string>
+    <string name="schedule_last">Last: %s</string>
+    <string name="schedule_daily">Daily</string>
+    <string name="schedule_weekdays">Weekdays</string>
+    <string name="schedule_geo_arrive">On arrival at \"%s\"</string>
+    <string name="schedule_geo_leave">On departure from \"%s\"</string>
+    <string name="schedule_every_n_min">Every %d min</string>
+    <string name="schedule_created">Scheduled task created</string>
+    <string name="schedule_empty">No scheduled tasks</string>
+
+    <!-- Overlay permission -->
+    <string name="overlay_permission_title">Overlay Permission</string>
+    <string name="overlay_permission_message">OpenCyvis can show a floating indicator while tasks run in the background. This is optional.</string>
+    <string name="overlay_permission_grant">Grant</string>
+
+    <!-- Geofence setup -->
+    <string name="schedule_geo_enter_label">On arrival</string>
+    <string name="schedule_geo_leave_label">On departure</string>
+    <string name="schedule_geo_pick_title">Location Trigger</string>
+    <string name="schedule_geo_location_hint">Location name (e.g. Office, Home)</string>
+    <string name="schedule_geo_name_required">Please enter a location name</string>
+    <string name="schedule_perm_location_denied">Location permission denied. Geofence cannot be set.</string>
+
+    <!-- Routine save suggestions -->
+    <string name="routine_ai_suggest">Run this often? Save as routine</string>
+    <string name="routine_ai_save_btn">Save as Routine</string>
+    <string name="routine_ai_dismiss_btn">Dismiss</string>
+    <string name="routine_longpress_copy">Copy</string>
+    <string name="routine_longpress_save">Save as Routine</string>
+    <string name="routine_longpress_rerun">Run Again</string>
+    <string name="routine_manage_schedule">Set Schedule</string>
+</resources>

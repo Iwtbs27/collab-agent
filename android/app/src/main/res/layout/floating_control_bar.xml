@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp"
+    android:background="@color/surface_banner">
+
+    <TextView
+        android:id="@+id/text_status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="View mode"
+        android:textColor="@color/on_surface_medium"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:paddingStart="4dp" />
+
+    <Button
+        android:id="@+id/btn_takeover"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:text="Takeover"
+        android:textSize="12sp"
+        android:minWidth="80dp"
+        android:layout_marginEnd="8dp"
+        android:textColor="@color/color_accent"
+        android:background="@drawable/bg_action_btn"
+        android:textAllCaps="false"
+        android:stateListAnimator="@null" />
+
+    <Button
+        android:id="@+id/btn_back_to_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:text="Back"
+        android:textSize="12sp"
+        android:minWidth="60dp"
+        android:textColor="@color/on_surface_medium"
+        android:background="@drawable/bg_action_btn"
+        android:textAllCaps="false"
+        android:stateListAnimator="@null" />
+
+</LinearLayout>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/surface"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:background="@drawable/bg_status_bar">
+
+        <Button
+            android:id="@+id/btn_back"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="←"
+            android:textSize="18sp"
+            android:minWidth="44dp"
+            android:textColor="@color/text_back_button" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/on_surface"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/text_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="@color/text_subtitle"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_delete"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="🗑"
+            android:textSize="16sp"
+            android:minWidth="44dp"
+            android:textColor="@color/color_danger" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/surface_overlay_10" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_messages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:background="@color/surface" />
+
+    <!-- Active conversation controls (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/active_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/surface_container"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/active_action_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone"
+            android:paddingBottom="8dp">
+
+            <Button
+                android:id="@+id/btn_active_view"
+                style="@style/OpenCyvis.Button.Custom"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="View"
+                android:textSize="13sp"
+                android:textColor="@color/on_surface_medium"
+                android:background="@drawable/bg_action_btn"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btn_active_stop"
+                style="@style/OpenCyvis.Button.Custom"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="Stop"
+                android:textSize="13sp"
+                android:textColor="@color/color_danger"
+                android:background="@drawable/bg_action_btn_danger"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/edit_active_input"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="10dp"
+                android:hint="Your answer..."
+                android:inputType="text"
+                android:background="@drawable/bg_input_field"
+                android:paddingHorizontal="20dp"
+                android:textSize="15sp"
+                android:textColor="@color/on_surface"
+                android:textColorHint="@color/on_surface_hint"
+                android:maxLines="1"
+                android:fontFamily="sans-serif" />
+
+            <Button
+                android:id="@+id/btn_active_send"
+                style="@style/OpenCyvis.Button.Custom"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="▲"
+                android:textSize="16sp"
+                android:textColor="@color/surface"
+                android:background="@drawable/bg_btn_send"
+                android:textStyle="bold"
+                android:padding="0dp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

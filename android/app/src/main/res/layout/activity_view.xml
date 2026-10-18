@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface">
+
+    <!-- SurfaceView renders VD content full-screen -->
+    <SurfaceView
+        android:id="@+id/surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <EditText
+        android:id="@+id/takeover_keyboard_proxy"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:layout_gravity="top|start"
+        android:alpha="0"
+        android:background="@null"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:imeOptions="flagNoExtractUi" />
+
+    <!-- Animated glow border: shows when agent is actively operating -->
+    <ai.opencyvis.ui.GlowBorderView
+        android:id="@+id/glow_border"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Touch interceptor: blocks touches in VIEW mode, invisible -->
+    <View
+        android:id="@+id/touch_interceptor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Completion/Error banner (Snackbar-style, top of bottom area) -->
+    <TextView
+        android:id="@+id/status_banner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="80dp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="12dp"
+        android:background="@drawable/banner_background"
+        android:textColor="@color/on_surface"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:visibility="gone"
+        android:elevation="8dp" />
+
+    <!-- Result panel: shown when task completes with a result message -->
+    <LinearLayout
+        android:id="@+id/result_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="@drawable/panel_background"
+        android:elevation="8dp"
+        android:visibility="gone"
+        android:paddingTop="14dp">
+
+        <!-- Close button (top-right) -->
+        <TextView
+            android:id="@+id/btn_result_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="-4dp"
+            android:text="✕"
+            android:textColor="@color/on_surface_subtle"
+            android:textSize="16sp"
+            android:padding="4dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Result icon + message -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="16dp"
+            android:gravity="top">
+
+            <TextView
+                android:id="@+id/result_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✓"
+                android:textSize="18sp"
+                android:textColor="@color/color_success"
+                android:layout_marginEnd="12dp"
+                android:layout_marginTop="1dp" />
+
+            <TextView
+                android:id="@+id/result_message"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/on_surface_high"
+                android:textSize="14sp"
+                android:lineSpacingMultiplier="1.35"
+                android:fontFamily="sans-serif" />
+        </LinearLayout>
+
+        <!-- Action buttons row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp">
+
+            <Button
+                android:id="@+id/btn_result_back"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="4dp"
+                android:text="@string/vd_btn_back"
+                android:textSize="13sp"
+                android:textColor="@color/on_surface_medium"
+                android:background="@drawable/bg_action_btn"
+                android:textAllCaps="false"
+                android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btn_result_takeover"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="4dp"
+                android:text="@string/vd_btn_take_over"
+                android:textSize="13sp"
+                android:textColor="@color/color_accent"
+                android:background="@drawable/bg_action_btn"
+                android:textAllCaps="false"
+                android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btn_result_stop"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="4dp"
+                android:text="@string/vd_btn_stop"
+                android:textSize="13sp"
+                android:textColor="@color/color_danger"
+                android:background="@drawable/bg_action_btn_danger"
+                android:textAllCaps="false"
+                android:stateListAnimator="@null" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- FAB: collapsible control button -->
+    <FrameLayout
+        android:id="@+id/fab"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/fab_background"
+        android:elevation="6dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/fab_icon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:textColor="@color/surface"
+            android:text="▶" />
+    </FrameLayout>
+
+    <!-- Expandable bottom panel -->
+    <LinearLayout
+        android:id="@+id/bottom_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="@drawable/panel_background"
+        android:elevation="8dp"
+        android:visibility="gone"
+        android:paddingTop="16dp">
+
+        <!-- Ask-user section: question + input (conditionally visible) -->
+        <LinearLayout
+            android:id="@+id/ask_user_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/question_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/color_accent"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="10dp">
+
+                <EditText
+                    android:id="@+id/answer_input"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/input_background"
+                    android:hint="@string/vd_hint_answer"
+                    android:textSize="14sp"
+                    android:paddingHorizontal="16dp"
+                    android:singleLine="true"
+                    android:textColor="@color/on_surface"
+                    android:textColorHint="@color/on_surface_hint"
+                    android:imeOptions="actionSend"
+                    android:inputType="text" />
+
+                <Button
+                    android:id="@+id/btn_voice_answer"
+                    android:layout_width="48dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="8dp"
+                    android:text="🎙"
+                    android:textSize="15sp"
+                    android:textColor="@color/on_surface_medium"
+                    android:background="@drawable/bg_action_btn"
+                    android:padding="0dp"
+                    android:stateListAnimator="@null" />
+
+                <Button
+                    android:id="@+id/btn_send_answer"
+                    android:layout_width="56dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="8dp"
+                    android:text="↑"
+                    android:textSize="18sp"
+                    android:textColor="@color/surface"
+                    android:background="@drawable/bg_btn_send"
+                    android:textStyle="bold"
+                    android:stateListAnimator="@null" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/handoff_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/handoff_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/handoff_title"
+                android:textColor="@color/color_accent"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingBottom="6dp" />
+
+            <TextView
+                android:id="@+id/handoff_reason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/on_surface_medium"
+                android:textSize="13sp"
+                android:lineSpacingMultiplier="1.25" />
+
+            <TextView
+                android:id="@+id/handoff_countdown_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text_countdown"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/handoff_pending_actions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/btn_handoff_now"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="@string/handoff_return_now"
+                    android:textSize="13sp"
+                    android:textColor="@color/surface"
+                    android:background="@drawable/bg_btn_send"
+                    android:textAllCaps="false"
+                    android:stateListAnimator="@null" />
+
+                <Button
+                    android:id="@+id/btn_handoff_cancel"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="@string/handoff_cancel_return"
+                    android:textSize="13sp"
+                    android:textColor="@color/on_surface_medium"
+                    android:background="@drawable/bg_action_btn"
+                    android:textAllCaps="false"
+                    android:stateListAnimator="@null" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/supplement_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/supplement_info"
+                android:textColor="@color/on_surface_medium"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="10dp">
+
+                <EditText
+                    android:id="@+id/supplement_input"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/input_background"
+                    android:hint="@string/supplement_hint"
+                    android:textSize="14sp"
+                    android:paddingHorizontal="16dp"
+                    android:singleLine="true"
+                    android:textColor="@color/on_surface"
+                    android:textColorHint="@color/on_surface_hint"
+                    android:imeOptions="actionSend"
+                    android:inputType="text" />
+
+                <Button
+                    android:id="@+id/btn_send_supplement"
+                    android:layout_width="56dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="8dp"
+                    android:text="↑"
+                    android:textSize="18sp"
+                    android:textColor="@color/surface"
+                    android:background="@drawable/bg_btn_send"
+                    android:textStyle="bold"
+                    android:stateListAnimator="@null" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Divider between ask-user and control buttons -->
+        <View
+            android:id="@+id/panel_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/surface_overlay_10"
+            android:visibility="gone" />
+
+        <!-- Control buttons row -->
+        <LinearLayout
+            android:id="@+id/control_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp">
+
+            <Button
+                android:id="@+id/btn_back"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="4dp"
+                android:text="@string/vd_btn_back"
+                android:textSize="13sp"
+                android:textColor="@color/on_surface_medium"
+                android:background="@drawable/bg_action_btn"
+                android:textAllCaps="false"
+                android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btn_minimize"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="4dp"
+                android:text="@string/vd_btn_minimize"
+                android:textSize="13sp"
+                android:textColor="@color/color_success"
+                android:background="@drawable/bg_action_btn"
+                android:textAllCaps="false"
+                android:contentDescription="@string/vd_cd_minimize"
+                android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btn_takeover"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="4dp"
+                android:text="@string/vd_btn_take_over"
+                android:textSize="13sp"
+                android:textColor="@color/color_accent"
+                android:background="@drawable/bg_action_btn"
+                android:textAllCaps="false"
+                android:stateListAnimator="@null" />
+
+            <Button
+                android:id="@+id/btn_stop"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="4dp"
+                android:text="@string/vd_btn_stop"
+                android:textSize="13sp"
+                android:textColor="@color/color_danger"
+                android:background="@drawable/bg_action_btn_danger"
+                android:textAllCaps="false"
+                android:stateListAnimator="@null" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

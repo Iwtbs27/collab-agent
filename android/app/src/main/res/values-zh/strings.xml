@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vd_btn_back">返回</string>
+    <string name="vd_btn_minimize">最小化</string>
+    <string name="vd_btn_take_over">接管</string>
+    <string name="vd_btn_return_control">退出接管</string>
+    <string name="vd_btn_stop">停止</string>
+    <string name="vd_hint_answer">请输入回答...</string>
+    <string name="vd_cd_minimize">最小化到悬浮窗</string>
+    <string name="handoff_title">需要你接管输入</string>
+    <string name="handoff_active_message">请在设备上完成敏感输入。Agent 不会读取或保存你输入的内容。</string>
+    <string name="handoff_pending_message">将在 %1$d 秒后交还给 agent。</string>
+    <string name="handoff_return_now">立即交还</string>
+    <string name="handoff_cancel_return">取消本次交还</string>
+    <string name="toast_microphone_permission_required">需要麦克风权限</string>
+
+    <!-- Control panel -->
+    <string name="btn_memory_label">记</string>
+    <string name="supplement_hint">补充任务信息…</string>
+    <string name="supplement_prefix">补充：%1$s</string>
+    <string name="task_complete">任务完成：%1$s</string>
+    <string name="task_failed">任务失败：%1$s</string>
+    <string name="task_max_steps">已达最大步数 (%1$d)，任务未完成</string>
+    <string name="task_error">出错：%1$s</string>
+    <string name="task_complete_step">任务完成 (Step %1$d)</string>
+    <string name="handoff_sensitive_input">需要你在设备上完成敏感输入：%1$s</string>
+    <string name="handoff_waiting_hint">等待你完成敏感输入…</string>
+    <string name="handoff_reason_default">请在设备上完成敏感输入</string>
+    <string name="handoff_page_changed">页面已变化，Agent 接管中</string>
+
+    <!-- Settings -->
+    <string name="btn_manage_memory">管理记忆</string>
+
+    <!-- Preference screen -->
+    <string name="pref_category_ai_model">AI 模型</string>
+    <string name="pref_category_remote_control">远程控制</string>
+    <string name="pref_category_security">安全</string>
+    <string name="pref_category_developer">开发者</string>
+    <string name="pref_category_about">关于</string>
+    <string name="pref_app_blacklist">应用黑名单</string>
+    <string name="pref_app_blacklist_summary">选择 AI 不可访问的应用</string>
+    <string name="pref_app_blacklist_none">未设置黑名单应用</string>
+    <string name="pref_provider_title">服务商</string>
+    <string name="pref_api_key_title">API Key</string>
+    <string name="pref_masked_summary">点击编辑</string>
+    <string name="pref_not_set">未设置</string>
+    <string name="pref_model_title">模型</string>
+    <string name="pref_base_url_title">Base URL</string>
+    <string name="pref_max_steps_title">最大步数</string>
+    <string name="pref_max_steps_summary">Agent 最大执行步数</string>
+    <string name="pref_im_enabled_title">启用远程 IM</string>
+    <string name="pref_im_enabled_summary">通过即时通讯应用控制 Agent</string>
+    <string name="pref_im_step_screenshots_title">步骤截图</string>
+    <string name="pref_im_step_screenshots_summary">每步执行后发送截图</string>
+    <string name="pref_telegram_title">Telegram</string>
+    <string name="pref_telegram_summary">配置 Telegram 机器人</string>
+    <string name="pref_feishu_title">飞书</string>
+    <string name="pref_feishu_summary">配置飞书应用</string>
+    <string name="pref_pair_status_title">状态</string>
+    <string name="pref_generate_code_summary">生成配对码绑定账号</string>
+    <string name="pref_unpair_summary">解除当前配对</string>
+    <string name="pref_telegram_bot_token_title">Bot Token</string>
+    <string name="pref_feishu_app_id_title">App ID</string>
+    <string name="pref_feishu_app_secret_title">App Secret</string>
+    <string name="pref_debug_mode_title">调试模式</string>
+    <string name="pref_debug_mode_summary">显示 LLM 响应详情</string>
+    <string name="pref_show_debug_routines_title">调试快捷指令</string>
+    <string name="pref_show_debug_routines_summary">在主页显示调试用快捷指令</string>
+    <string name="pref_manage_memory_summary">查看和编辑 Agent 记忆</string>
+    <string name="pref_advanced_title">高级</string>
+    <string name="pref_advanced_summary">手动设置 ID（调试/恢复）</string>
+    <string name="pref_telegram_chat_id_title">Telegram Chat ID</string>
+    <string name="pref_feishu_open_id_title">飞书 Open ID</string>
+    <string name="pref_version_title">版本</string>
+    <string name="pairing_code_dialog_title">配对码</string>
+    <string name="pairing_code_dialog_message">在你的 %2$s 中发送 /pair %1$s。\n\n此配对码 10 分钟后过期。</string>
+
+    <!-- Provider Profiles -->
+    <string name="pref_profile_title">配置</string>
+    <string name="pref_profile_summary_none">未保存配置 — 点击保存或切换</string>
+    <string name="pref_profile_summary_active">当前: %1$s</string>
+    <string name="profile_dialog_title">Provider 配置</string>
+    <string name="profile_dialog_new">+ 新建配置</string>
+    <string name="profile_save_as_title">保存配置</string>
+    <string name="profile_name_hint">配置名称</string>
+    <string name="profile_saved">配置「%1$s」已保存</string>
+    <string name="profile_switched">已切换到「%1$s」</string>
+    <string name="profile_deleted">配置「%1$s」已删除</string>
+    <string name="profile_name_empty">配置名称不能为空</string>
+    <string name="profile_name_exists">配置「%1$s」已存在</string>
+    <string name="profile_delete_confirm">删除配置「%1$s」？</string>
+
+    <!-- Memory screen -->
+    <string name="memory_title">记忆</string>
+    <string name="memory_search_hint">搜索记忆</string>
+    <string name="memory_dialog_key_hint">键名</string>
+    <string name="memory_dialog_value_hint">内容</string>
+    <string name="memory_dialog_category_hint">分类</string>
+    <string name="memory_dialog_add_title">新增记忆</string>
+    <string name="memory_dialog_edit_title">编辑记忆</string>
+    <string name="memory_dialog_save">保存</string>
+    <string name="memory_dialog_cancel">取消</string>
+    <string name="memory_action_enable">启用</string>
+    <string name="memory_action_disable">停用</string>
+    <string name="memory_action_delete">删除</string>
+    <string name="memory_status_enabled">启用</string>
+    <string name="memory_status_disabled">停用</string>
+    <string name="memory_source_ai">AI 记住</string>
+    <string name="memory_source_user">用户添加</string>
+    <string name="memory_uncategorized">未分类</string>
+
+    <!-- Overlay -->
+    <string name="overlay_running">运行中</string>
+    <string name="overlay_waiting_answer">⚠ 等待回答</string>
+    <string name="overlay_waiting_handoff">⚠ 等待接管</string>
+    <string name="overlay_paused">已暂停</string>
+    <string name="overlay_paused_takeover">已暂停 / takeover</string>
+    <string name="overlay_stop">停止</string>
+    <string name="overlay_done">✓ 已完成</string>
+    <string name="overlay_failed">✗ 失败</string>
+    <string name="notif_task_completed">任务完成</string>
+    <string name="notif_task_failed_title">任务失败</string>
+
+    <!-- Supplement info (VD view) -->
+    <string name="supplement_info">补充信息</string>
+
+    <!-- Notifications -->
+    <string name="notif_needs_answer">OpenCyvis 需要回答</string>
+    <string name="notif_open_app">打开 OpenCyvis</string>
+    <string name="notif_channel_ask">OpenCyvis 提问</string>
+    <string name="notif_channel_ask_desc">Agent 等待用户回答时的高优先级提醒</string>
+    <string name="notif_max_steps_reached">已达到最大步数限制 (%1$d)</string>
+
+    <!-- IM pairing & replies -->
+    <string name="im_pair_success">配对成功！你现在可以发送指令了。</string>
+    <string name="im_pair_expired">配对码已过期，请重新生成。</string>
+    <string name="im_pair_wrong_code">配对码无效。</string>
+    <string name="im_pair_locked_out">尝试次数过多，请稍后再试。</string>
+    <string name="im_pair_hint">发送 /pair &lt;配对码&gt; 完成配对。配对码在 OpenCyvis 设置中查看。</string>
+    <string name="im_unpair_success">已解绑。发送 /pair &lt;配对码&gt; 重新配对。</string>
+    <string name="im_already_paired">已配对。</string>
+    <string name="im_stopped">已停止</string>
+    <string name="im_busy">Agent 忙，/stop 终止后再发</string>
+    <string name="im_group_rejected">暂不支持群聊消息。</string>
+
+    <!-- IM settings UI -->
+    <string name="im_pairing_code_label">配对码</string>
+    <string name="im_generate_code">生成配对码</string>
+    <string name="im_no_code">未生成</string>
+    <string name="im_paired_with">已配对：%1$s</string>
+    <string name="im_not_paired">未配对</string>
+    <string name="im_unpair">解除配对</string>
+    <string name="im_code_expires">%1$d:%2$02d 后过期</string>
+
+    <!-- IM status & notification texts -->
+    <string name="im_status_no_service">AgentService 未连接</string>
+    <string name="im_status_idle">空闲: %1$s</string>
+    <string name="im_status_running">运行中: step %1$d, %2$s</string>
+    <string name="im_status_waiting_user">等待用户: %1$s</string>
+    <string name="im_status_waiting_handoff">等待交棒: %1$s</string>
+    <string name="im_status_error">错误: %1$s</string>
+    <string name="im_status_paused">已暂停</string>
+    <string name="im_status_no_engine">无引擎</string>
+    <string name="im_notify_ask_user">需要你回答: %1$s</string>
+    <string name="im_notify_handoff">需要交棒: %1$s</string>
+    <string name="im_notify_task_complete">任务完成: %1$s</string>
+    <string name="im_notify_error">错误: %1$s</string>
+
+    <!-- IM /status extra lines -->
+    <string name="im_status_phone">手机: %1$s</string>
+    <string name="im_status_device">设备: %1$s %2$s, Android %3$s</string>
+    <string name="im_status_llm">LLM: %1$s / %2$s</string>
+
+    <!-- Home Screen Greetings -->
+    <string name="greeting_morning">早上好</string>
+    <string name="greeting_noon">中午好</string>
+    <string name="greeting_afternoon">下午好</string>
+    <string name="greeting_evening">晚上好</string>
+    <string name="greeting_subtitle">想做点什么？</string>
+
+    <!-- Home Screen Sections -->
+    <string name="section_recommended">推荐</string>
+    <string name="section_quick_actions">快捷指令</string>
+    <string name="section_recent">最近使用</string>
+
+    <!-- Built-in Routines -->
+    <string name="routine_coffee">帮我点咖啡</string>
+    <string name="routine_coffee_desc">瑞幸/星巴克</string>
+    <string name="routine_email">查看邮件</string>
+    <string name="routine_email_desc">未读邮件摘要</string>
+    <string name="routine_calendar">今日日程</string>
+    <string name="routine_calendar_desc">日历提醒</string>
+    <string name="routine_weather">天气查询</string>
+    <string name="routine_weather_desc">出行建议</string>
+    <string name="routine_open_app">打开应用</string>
+    <string name="routine_open_app_desc">启动指定应用</string>
+    <string name="routine_coffee_instruction">帮我点一杯咖啡，打开瑞幸或星巴克</string>
+    <string name="routine_email_instruction">查看今日未读邮件</string>
+    <string name="routine_calendar_instruction">显示今天的日程安排</string>
+    <string name="routine_weather_instruction">查询今天的天气和出行建议</string>
+    <string name="routine_open_app_instruction">打开</string>
+
+    <!-- Debug Routines -->
+    <string name="routine_open_settings">打开设置</string>
+    <string name="routine_open_settings_desc">打开应用设置</string>
+
+    <!-- Routine Management -->
+    <string name="routine_save_title">保存为 Routine</string>
+    <string name="routine_save_hint">输入 Routine 名称</string>
+    <string name="routine_save_success">Routine 已保存</string>
+    <string name="routine_manage_title">管理 Routine</string>
+    <string name="routine_manage_edit">编辑</string>
+    <string name="routine_manage_delete">删除</string>
+    <string name="routine_manage_pin">置顶</string>
+    <string name="routine_manage_unpin">取消置顶</string>
+    <string name="routine_edit_title">编辑 Routine</string>
+    <string name="routine_delete_title">删除 Routine</string>
+    <string name="routine_delete_message">删除 \"%s\"？</string>
+    <string name="routine_delete_confirm">删除</string>
+    <string name="routine_instruction_hint">发送给 Agent 的指令</string>
+
+    <!-- Schedule -->
+    <string name="schedule_title">定时任务</string>
+    <string name="schedule_paused">已暂停</string>
+    <string name="schedule_next">下次: %s</string>
+    <string name="schedule_last">上次: %s</string>
+    <string name="schedule_daily">每天</string>
+    <string name="schedule_weekdays">工作日</string>
+    <string name="schedule_geo_arrive">到达「%s」时</string>
+    <string name="schedule_geo_leave">离开「%s」时</string>
+    <string name="schedule_every_n_min">每 %d 分钟</string>
+    <string name="schedule_created">定时任务已创建</string>
+    <string name="schedule_empty">暂无定时任务</string>
+
+    <!-- Overlay permission -->
+    <string name="overlay_permission_title">悬浮窗权限</string>
+    <string name="overlay_permission_message">OpenCyvis 可以在任务后台运行时显示浮动指示器，这是可选的。</string>
+    <string name="overlay_permission_grant">授权</string>
+
+    <!-- Geofence setup -->
+    <string name="schedule_geo_enter_label">到达时</string>
+    <string name="schedule_geo_leave_label">离开时</string>
+    <string name="schedule_geo_pick_title">位置触发</string>
+    <string name="schedule_geo_location_hint">地点名称（如 公司、家）</string>
+    <string name="schedule_geo_name_required">请输入地点名称</string>
+    <string name="schedule_perm_location_denied">位置权限被拒绝，无法设置地理围栏</string>
+
+    <!-- Routine save suggestions -->
+    <string name="routine_ai_suggest">经常执行？保存为例行任务</string>
+    <string name="routine_ai_save_btn">保存为例行任务</string>
+    <string name="routine_ai_dismiss_btn">忽略</string>
+    <string name="routine_longpress_copy">复制</string>
+    <string name="routine_longpress_save">保存为例行任务</string>
+    <string name="routine_longpress_rerun">重新执行</string>
+    <string name="routine_manage_schedule">设置定时</string>
+</resources>

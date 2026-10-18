@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="4dp"
+    android:orientation="horizontal">
+
+    <ProgressBar
+        android:id="@+id/cycle_spinner"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_gravity="center_vertical"
+        android:indeterminateTint="@color/color_progress_green" />
+
+    <ai.opencyvis.ui.TypewriterTextView
+        android:id="@+id/cycle_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="8dp"
+        android:textColor="@color/text_cycle"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif" />
+</LinearLayout>

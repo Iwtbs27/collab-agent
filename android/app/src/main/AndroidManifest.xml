@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ai.opencyvis">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.INJECT_EVENTS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_FRAME_BUFFER" />
+    <uses-permission android:name="android.permission.CAPTURE_SECURE_VIDEO_OUTPUT" />
+    <uses-permission android:name="android.permission.MANAGE_ACTIVITY_TASKS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- Heads-up the pairing-code notification even when our process is backgrounded/frozen -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Let the user exempt us from battery optimization so aggressive OEM freezers
+         (e.g. ColorOS HansManager) are less likely to suspend the pairing service -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Package visibility: allows list_apps to discover all installed apps (Android 11+) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".App"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.OpenCyvis">
+
+        <activity
+            android:name=".ui.ControlPanelActivity"
+            android:exported="true"
+            android:configChanges="uiMode"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.OpenCyvis.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.ViewActivity"
+            android:exported="false"
+            android:label="OpenCyvis View"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.OpenCyvis.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="Settings"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.OpenCyvis.Settings">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="config"
+                    android:scheme="opencyvis" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.ConversationHistoryActivity"
+            android:exported="false"
+            android:label="Conversation History"
+            android:theme="@style/Theme.OpenCyvis.NoActionBar" />
+
+        <activity
+            android:name=".ui.ConversationDetailActivity"
+            android:exported="false"
+            android:label="Conversation Detail"
+            android:theme="@style/Theme.OpenCyvis.NoActionBar" />
+
+        <activity
+            android:name=".ui.MemoryActivity"
+            android:exported="false"
+            android:label="Memory"
+            android:theme="@style/Theme.OpenCyvis.NoActionBar" />
+
+        <activity
+            android:name=".ui.ScheduleListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <activity
+            android:name=".backend.SetupActivity"
+            android:exported="false"
+            android:label="Backend Setup"
+            android:configChanges="screenSize|screenLayout|smallestScreenSize"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.OpenCyvis.NoActionBar" />
+
+        <activity
+            android:name=".backend.PairingDialogActivity"
+            android:theme="@style/Theme.OpenCyvis.Dialog"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:exported="false" />
+
+        <activity
+            android:name=".backend.SplitScreenPocActivity"
+            android:exported="true"
+            android:configChanges="screenSize|screenLayout|smallestScreenSize"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.OpenCyvis.NoActionBar">
+            <intent-filter>
+                <action android:name="ai.opencyvis.SPLIT_POC" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".AgentService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="ai_phone_control" />
+        </service>
+
+        <service
+            android:name=".OverlayService"
+            android:exported="false" />
+
+        <service
+            android:name=".remoteim.RemoteImControlService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="remote_im_channel" />
+        </service>
+
+        <service
+            android:name=".accessibility.VdAccessibilityService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
+        <provider
+            android:name=".backend.BinderExchangeProvider"
+            android:authorities="${applicationId}.binder_exchange"
+            android:exported="true" />
+
+        <service
+            android:name=".backend.AdbPairingService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <receiver
+            android:name=".backend.PairingBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="ai.opencyvis.PAIR" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".schedule.ScheduleReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".schedule.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

@@ -1,0 +1,43 @@
+name: UI Tests (on-device) [DEPRECATED — use verify.yml]
+
+# Superseded by verify.yml which includes unit + instrumented + E2E stages.
+# Keeping this file disabled. Remove after verify.yml is confirmed working.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  ui-test:
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify device connected
+        run: |
+          adb devices | grep -q 'device$' || { echo "No Android device connected"; exit 1; }
+
+      - name: Build and deploy
+        run: |
+          cd android && bash deploy.sh
+
+      - name: Run UI tests
+        run: |
+          claude --print "run all scenarios from tests/ui/scenarios.yml using the test-ui agent protocol: for each scenario, send the instruction via ADB broadcast, wait for completion, run verifications, and report PASS/FAIL" \
+            --allowedTools "Bash(adb *)" "Bash(sleep *)" "Read" "Grep" "Glob" \
+            2>&1 | tee test-results.txt
+
+      - name: Post results to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('test-results.txt', 'utf8');
+            const last500 = results.split('\n').slice(-500).join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## UI Test Results\n\n\`\`\`\n${last500}\n\`\`\``
+            });

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#00030F</color>
+
+    <!-- Surface / Background colors (light defaults) -->
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_container">#F5F5F5</color>
+    <color name="surface_card">#F0F0F2</color>
+    <color name="surface_overlay_10">#1A000000</color>
+    <color name="surface_overlay_5">#0D000000</color>
+    <color name="surface_overlay_13">#221A1A1A</color>
+    <color name="surface_overlay_20">#331A1A1A</color>
+    <color name="surface_panel">#F0F5F5F5</color>
+    <color name="surface_banner">#E6F5F5F5</color>
+    <color name="surface_pill">#EBF5F5F5</color>
+    <color name="surface_island">#F0FFFFFF</color>
+
+    <!-- Text colors (light defaults) -->
+    <color name="on_surface">#E01A1A1A</color>
+    <color name="on_surface_medium">#B01A1A1A</color>
+    <color name="on_surface_high">#C01A1A1A</color>
+    <color name="on_surface_full">#F01A1A1A</color>
+    <color name="on_surface_muted">#80000000</color>
+    <color name="on_surface_hint">#40000000</color>
+    <color name="on_surface_subtle">#501A1A1A</color>
+    <color name="text_caption">#666666</color>
+    <color name="text_subtitle">#3D3D3D</color>
+    <color name="text_link">#80A0FF</color>
+    <color name="text_back_button">#555555</color>
+    <color name="text_countdown">#6B8FD4</color>
+    <color name="text_cycle">#64748B</color>
+    <color name="text_on_bubble_user">#F0FFFFFF</color>
+
+    <!-- Dialog actions -->
+    <color name="dialog_action">#7A5B00</color>
+
+    <!-- Brand / Semantic colors (same in both themes) -->
+    <color name="color_accent">#FFCBA135</color>
+    <color name="color_success">#4ADE80</color>
+    <color name="color_danger">#EF4444</color>
+    <color name="color_info">#FF2563EB</color>
+    <color name="color_progress_green">#6EE7B7</color>
+    <color name="color_countdown_light">#9CC7FF</color>
+</resources>
